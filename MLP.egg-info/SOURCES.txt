@@ -1,0 +1,10 @@
+README.md
+setup.py
+MLP/__init__.py
+MLP/prova.py
+MLP.egg-info/PKG-INFO
+MLP.egg-info/SOURCES.txt
+MLP.egg-info/dependency_links.txt
+MLP.egg-info/top_level.txt
+MLP/experiments/__init__.py
+MLP/experiments/monk1.py
