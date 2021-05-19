@@ -1,55 +1,49 @@
 from math import ceil
 import numpy as np
+from MLP.Metrics import MSE, accuracy
 
-# TODO: Create base class Optimizer from which we derive the shared method 'optimize'
+def print_epoch_stats(model, t, train_X, train_Y, val_X, val_Y):
+    train_accuracy = accuracy(model, train_X, train_Y)
+    val_accuracy = accuracy(model, val_X, val_Y)
+    print(f'Epoch {t+1} | MSE = {MSE(model, train_X, train_Y)} | Training accuracy = {train_accuracy} | Validation accuracy = {val_accuracy}')
+
+
+def print_epoch_stats(model, t, X, Y):
+    train_accuracy = accuracy(model, X, Y)
+    print(f'Epoch {t+1} | MSE = {MSE(model, X, Y)} | Training accuracy = {train_accuracy}')
+
 
 # Gradient Descent optimization supporting
 # Online or Batch learning and Early Stopping Regularization
 class GradientDescent:
-    def __init__(self, lr: float = 0.01, MAX_EPOCHS = 100, BACTH_SIZE = 10, MAX_UNLUCKY_STEPS = 1):
+    def __init__(self, lr: float = 0.01, alpha: float = 0.5, BATCH_SIZE = 10):
         self.lr = lr
-        self.MAX_EPOCHS = MAX_EPOCHS
-        self.BATCH_SIZE = BACTH_SIZE
-        self.MAX_UNLUCKY_STEPS = MAX_UNLUCKY_STEPS
-    
-    # The function works by applying gradient descent onto the training set,
-    # and each epoch it checks the error on the validation set to see if it
-    # improved. In case it got better we save the current configuration,
-    # otherwise we keep trying for a 'MAX_UNLUCKY_STEPS'. If after
-    # 'MAX_UNLUCKY_STEPS' the validation error hasn't reached a new low, we return
-    # the model trained on the best configuration found on the union of the
-    # training and validation set.
-    def optimize(self, model, train_X, train_Y, val_X, val_Y):
-        # Check that the input and output dimensions of the model matches the one of the data supplied
-        input_dimension = model.layers[0].dimension_in
-        output_dimension = model.layers[-1].dimension_out
-        assert input_dimension == train_X[0].shape[0], f'Input dimension ({input_dimension}) of the model don\'t match with the input dimension ({train_X[0].shape[0]}) of the data.'
-        assert output_dimension == train_Y[0].shape[0], f'Input dimension ({output_dimension}) of the model don\'t match with the input dimension ({train_Y[0].shape[0]}) of the data.'
+        self.alpha = alpha
+        self.BATCH_SIZE = BATCH_SIZE
 
-        for t in range(self.MAX_EPOCHS):
+    def optimize(self, model, X, Y, MAX_EPOCHS):
+        train_errors = [MSE(model, X, Y)]
+        train_accuracies = [accuracy(model, X, Y)]
+
+        # Initialize to 0 the prev delta (used for nesterov momentum)
+        self.prev_delta_W = [np.zeros(layer.W.shape) for layer in model.layers]
+        self.prev_delta_b = [np.zeros(layer.b.shape) for layer in model.layers]
+
+        for t in range(MAX_EPOCHS):
             # Shuffle the training data
-            dataset = np.column_stack((train_X, train_Y))
+            # TODO: Sample the mini-batches
+            dataset = np.column_stack((X, Y))
             dataset = np.random.permutation(dataset)
             # For each minibatch apply gradient descent
             for i in range(0, ceil(dataset.shape[0] / self.BATCH_SIZE)):
                 # TODO: This sampling is not i.i.d.
                 mini_batch = dataset[i * self.BATCH_SIZE:(i * self.BATCH_SIZE) + self.BATCH_SIZE][:]
                 self.step(model, mini_batch)
-            # TODO: Print error and check validation unlucky..
-            print(f'Epoch {t+1} | MSE = {round(self.MSE(model, train_X, train_Y)[0][0], 5)} | Training accuracy = {round(self.accuracy(model, train_X, train_Y), 3)} | Validation accuracy = {round(self.accuracy(model, val_X, val_Y), 3)}')
-
-    def accuracy(self, model, X, Y):
-        corrects = 0
-        for i in range(X.shape[0]):
-            if Y[i] == (1 if model.predict(X[i]) >= 0 else -1):
-                corrects += 1
-        return corrects / X.shape[0]
-
-    def MSE(self, model, X, Y):
-        e = 0.0
-        for i in range(X.shape[0]):
-            e += (Y[i] - model.predict(X[i]))**2
-        return e / (2 * X.shape[0])
+            
+            train_errors.append(MSE(model, X, Y))
+            train_accuracies.append(accuracy(model, X, Y))
+            print_epoch_stats(model, t, X, Y)
+        return (train_errors, train_accuracies)
 
     def step(self, model, mini_batch):
         delta_W = []
@@ -59,6 +53,20 @@ class GradientDescent:
             delta_b.append(np.zeros(layer.b.shape))
         input_dimension = model.layers[0].dimension_in
 
+        # theta
+        old_layers_W = []
+        old_layers_b = []
+        for i, layer in enumerate(model.layers):
+            old_layers_W.append(layer.W)
+            old_layers_b.append(layer.b)
+
+        # Apply interim update:
+        for i, layer in enumerate(model.layers):
+            layer.W = layer.W + self.alpha * self.prev_delta_W[i]
+            if layer.use_bias:
+                layer.b = layer.b + self.alpha * self.prev_delta_b[i]
+        
+        # Compute the gradient
         for point in mini_batch:
             x = point[:input_dimension].T
             y = point[input_dimension:].T
@@ -70,10 +78,14 @@ class GradientDescent:
                 delta_W[i] = delta_W[i] + new_delta_W[i]
                 delta_b[i] = delta_b[i] + new_delta_b[i]
         
+        # Compute velocity update and apply update:
         for i, layer in enumerate(model.layers):
-            layer.W = layer.W - (1/(self.lr * self.BATCH_SIZE) * delta_W[i])
+            self.prev_delta_W[i] = self.alpha * self.prev_delta_W[i] - ((self.lr/self.BATCH_SIZE) * delta_W[i])
+            layer.W = old_layers_W[i] + self.prev_delta_W[i]
             if layer.use_bias:
-                layer.b = layer.b - (1/(self.lr * self.BATCH_SIZE) * delta_b[i])
+                self.prev_delta_b[i] = self.alpha * self.prev_delta_b[i] - ((self.lr/self.BATCH_SIZE) * delta_b[i])
+                layer.b = old_layers_b[i] + self.prev_delta_b[i]
+
 
     def backpropagate(self, model, x, y):
         # Forward computation
