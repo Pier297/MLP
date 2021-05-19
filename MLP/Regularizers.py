@@ -10,14 +10,14 @@ from math import ceil
 # 'MAX_UNLUCKY_STEPS' the validation error hasn't reached a new minima, we return
 # the model trained on the best configuration found on the union of the
 # training and validation set.
-def early_stopping(model, optimizer, train_X, train_Y, val_X, val_Y, MAX_UNLUCKY_STEPS = 10):
+def early_stopping(model, optimizer, train_X, train_Y, val_X, val_Y, MAX_UNLUCKY_STEPS = 10, MAX_EPOCHS = 100):
     # Check input and output dimensions of the model to see that it checks the data.
     input_dimension = model.layers[0].dimension_in
     output_dimension = model.layers[-1].dimension_out
     assert input_dimension == train_X[0].shape[0], f'Input dimension ({input_dimension}) of the model don\'t match with the input dimension ({train_X[0].shape[0]}) of the data.'
     assert output_dimension == train_Y[0].shape[0], f'Output dimension ({output_dimension}) of the model don\'t match with the Output dimension ({train_Y[0].shape[0]}) of the data.'
 
-    best_number_of_epochs = _early_stopping(model, optimizer, train_X, train_Y, val_X, val_Y, MAX_UNLUCKY_STEPS)
+    best_number_of_epochs = _early_stopping(model, optimizer, train_X, train_Y, val_X, val_Y, MAX_UNLUCKY_STEPS, MAX_EPOCHS)
 
     X = np.row_stack((train_X, val_X))
     Y = np.row_stack((train_Y, val_Y))
@@ -26,7 +26,7 @@ def early_stopping(model, optimizer, train_X, train_Y, val_X, val_Y, MAX_UNLUCKY
     # Train on training and validation data
     return optimizer.optimize(model, X, Y, best_number_of_epochs)
 
-def _early_stopping(model, optimizer, train_X, train_Y, val_X, val_Y, MAX_UNLUCKY_STEPS):
+def _early_stopping(model, optimizer, train_X, train_Y, val_X, val_Y, MAX_UNLUCKY_STEPS, MAX_EPOCHS):
         best_val_accuracy = MSE(model, val_X, val_Y)
         best_number_of_epochs = 0
         unlucky_steps = 0
@@ -34,7 +34,7 @@ def _early_stopping(model, optimizer, train_X, train_Y, val_X, val_Y, MAX_UNLUCK
         optimizer.prev_delta_W = [np.zeros(layer.W.shape) for layer in model.layers]
         optimizer.prev_delta_b = [np.zeros(layer.b.shape) for layer in model.layers]
 
-        for t in range(optimizer.MAX_EPOCHS):
+        for t in range(MAX_EPOCHS):
             # Shuffle the training data
             dataset = np.column_stack((train_X, train_Y))
             dataset = np.random.permutation(dataset)
