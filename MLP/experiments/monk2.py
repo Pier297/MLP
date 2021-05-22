@@ -14,7 +14,7 @@ model = Sequential()
 model.add(Dense(17, 5))
 model.add(Dense(5, 1))
 
-optimizer = GradientDescent(lr=0.1, alpha=0, BATCH_SIZE=10)
+optimizer = GradientDescent(lr=0.1, momentum=0, BATCH_SIZE=10)
 
 (train_errors, train_accuracies) = optimizer.optimize(model, train_X, train_Y, MAX_EPOCHS=100)
 

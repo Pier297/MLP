@@ -1,10 +1,16 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
-def MSE(model, X, Y) -> float:
+# TODO: Remove me, duplicate of MLP.LossFuncions.MSE
+def MSE(model, X, Y, L2 = 0) -> float:
     e = 0.0
     for i in range(X.shape[0]):
         e += (Y[i] - model.predict(X[i]))**2
-    return (e / (2 * X.shape[0]))[0][0]
+    squared_weights_sum = 0.0
+    for layer in model.layers:
+        for row_weights in layer.W:
+            squared_weights_sum += np.linalg.norm(row_weights) ** 2
+    return (e / (2 * X.shape[0]))[0][0] + L2 * squared_weights_sum
 
 
 def accuracy(model, X, Y) -> float:
@@ -13,8 +19,6 @@ def accuracy(model, X, Y) -> float:
         if Y[i] == (1 if model.predict(X[i]) >= 0 else -1):
             corrects += 1
     return corrects / X.shape[0]
-
-
 
 
 def plot_learning_curves(train_errors, val_errors=[], show=False):

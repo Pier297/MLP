@@ -3,6 +3,7 @@ from MLP.Layers import Dense
 from MLP.Optimizers import GradientDescent
 from MLP.Metrics import plot_learning_curves, plot_accuracies
 from MLP.Regularizers import early_stopping
+from MLP.LossFunctions import MSE
 
 from MLP.experiments.utils import load_monk, set_seed, split_train_set
 
@@ -14,7 +15,8 @@ model = Sequential()
 model.add(Dense(17, 3))
 model.add(Dense(3, 1))
 
-optimizer = GradientDescent(lr=0.4, alpha=0.3, BATCH_SIZE=10)
+loss_func = MSE(L2 = 0.0001)
+optimizer = GradientDescent(loss_function=loss_func, lr=0.4, momentum=0.3, BATCH_SIZE=10)
 
 (train_errors, train_accuracies) = optimizer.optimize(model, train_X, train_Y, MAX_EPOCHS=100)
 

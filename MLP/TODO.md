@@ -1,6 +1,7 @@
-- L2 regularization
+- Implement other loss functions: cross-entropy
 - kfold
-- model selection --> grid search
+- model selection --> grid search & random search
+- batch normalization?
 - adam
 - dropout & relu layer
 
