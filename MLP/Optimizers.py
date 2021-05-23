@@ -23,9 +23,11 @@ class GradientDescent:
         self.momentum = momentum
         self.BATCH_SIZE = BATCH_SIZE
 
-    def optimize(self, model, X, Y, MAX_EPOCHS):
+    def optimize(self, model, X, Y, val_X, val_Y, MAX_EPOCHS):
         train_errors = [self.loss_function.eval(model, X, Y)]
         train_accuracies = [accuracy(model, X, Y)]
+        val_errors = [self.loss_function.eval(model, val_X, val_Y)]
+        val_accuracies = [accuracy(model, val_X, val_Y)]
 
         # Initialize to 0 the prev delta (used for nesterov momentum)
         self.prev_delta_W = [np.zeros(layer.W.shape) for layer in model.layers]
@@ -44,8 +46,10 @@ class GradientDescent:
             
             train_errors.append(self.loss_function.eval(model, X, Y))
             train_accuracies.append(accuracy(model, X, Y))
+            val_errors.append(self.loss_function.eval(model, val_X, val_Y))
+            val_accuracies.append(accuracy(model, val_X, val_Y))
             print_epoch_stats(self.loss_function, model, t, X, Y)
-        return (train_errors, train_accuracies)
+        return (train_errors, train_accuracies, val_errors, val_accuracies)
 
     def step(self, model, mini_batch):
         delta_W = []

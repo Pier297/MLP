@@ -11,8 +11,11 @@ class Dense:
         #self.W = np.random.uniform(low=-normalized_init, high=normalized_init, size=(dimension_out, dimension_in))
 
         init = 1/sqrt(dimension_in)
-        self.W = np.random.uniform(low=-init, high=init, size=(dimension_out, dimension_in))
-        self.b = np.zeros((dimension_out, 1))
+        self.W = np.random.uniform(low=-init/2, high=init/2, size=(dimension_out, dimension_in))
+        if use_bias:
+            self.b = np.random.uniform(low=-0.1, high=0.1, size=(dimension_out, 1))
+        else:
+            self.b = np.zeros((dimension_out, 1))
         self.use_bias = use_bias
         self.dimension_in = dimension_in
         self.dimension_out = dimension_out

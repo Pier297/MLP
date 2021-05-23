@@ -7,6 +7,12 @@ class Sequential:
     def __init__(self):
         self.layers = []
 
+    def from_configuration(self, configuration, in_dimension, out_dimension):
+        self.add(Dense(in_dimension, configuration["hidden_layers"][0]))
+        for i in range(len(configuration["hidden_layers"]) - 1):
+            self.add(Dense(configuration["hidden_layers"][i], configuration["hidden_layers"][i + 1]))
+        self.add(Dense(configuration["hidden_layers"][-1], out_dimension))
+
     def add(self, layer):
         self.layers.append(layer)
 

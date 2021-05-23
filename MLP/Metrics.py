@@ -17,18 +17,18 @@ def accuracy(model, X, Y) -> float:
     corrects = 0
     for i in range(X.shape[0]):
         # TODO: the threshold and output values should be derived from somewhere
-        if Y[i] == (1 if model.predict(X[i]) >= 0.5 else 0):
+        if Y[i] == (1 if model.predict(X[i]) >= 0 else -1):
             corrects += 1
     return corrects / X.shape[0]
 
 
-def plot_learning_curves(train_errors, val_errors=[], show=False):
+def plot_learning_curves(train_errors, val_errors=[], show=False, name: str = 'MSE'):
     plt.figure()
     plt.plot(train_errors, label='Train error')
     if val_errors != []:
         plt.plot(val_errors, label='Validation error')
     plt.legend()
-    plt.title('MSE')
+    plt.title(name)
     plt.xlabel('iteration')
     plt.ylabel('errors')
     plt.draw()

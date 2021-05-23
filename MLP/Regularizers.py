@@ -1,5 +1,5 @@
 import numpy as np
-from MLP.Metrics import MSE
+from MLP.Metrics import MSE, accuracy
 from math import ceil
 
 # Early stopping:
@@ -10,6 +10,8 @@ from math import ceil
 # 'MAX_UNLUCKY_STEPS' the validation error hasn't reached a new minima, we return
 # the model trained on the best configuration found on the union of the
 # training and validation set.
+""" #
+# Returns a tuple (train_errors, val_errors) containing the history of errors on training & val sets.
 def early_stopping(model, optimizer, train_X, train_Y, val_X, val_Y, MAX_UNLUCKY_STEPS = 10, MAX_EPOCHS = 100):
     # Check input and output dimensions of the model to see that it checks the data.
     input_dimension = model.layers[0].dimension_in
@@ -24,12 +26,17 @@ def early_stopping(model, optimizer, train_X, train_Y, val_X, val_Y, MAX_UNLUCKY
 
     model = model.reset()
     # Train on training and validation data
-    return optimizer.optimize(model, X, Y, best_number_of_epochs)
+    return optimizer.optimize(model, X, Y, best_number_of_epochs) """
 
 def _early_stopping(model, optimizer, train_X, train_Y, val_X, val_Y, MAX_UNLUCKY_STEPS, MAX_EPOCHS):
-        best_val_accuracy = MSE(model, val_X, val_Y)
+        best_val_error = optimizer.loss_function.eval(model, val_X, val_Y)
         best_number_of_epochs = 0
         unlucky_steps = 0
+
+        train_errors = [optimizer.loss_function.eval(model, train_X, train_Y)]
+        train_accuracies = [accuracy(model, train_X, train_Y)]
+        val_errors = [optimizer.loss_function.eval(model, val_X, val_Y)]
+        val_accuracies = [accuracy(model, val_X, val_Y)]
         
         optimizer.prev_delta_W = [np.zeros(layer.W.shape) for layer in model.layers]
         optimizer.prev_delta_b = [np.zeros(layer.b.shape) for layer in model.layers]
@@ -43,10 +50,15 @@ def _early_stopping(model, optimizer, train_X, train_Y, val_X, val_Y, MAX_UNLUCK
                 # TODO: This sampling is not i.i.d.
                 mini_batch = dataset[i * optimizer.BATCH_SIZE:(i * optimizer.BATCH_SIZE) + optimizer.BATCH_SIZE][:]
                 optimizer.step(model, mini_batch)
+
+            train_errors.append(optimizer.loss_function.eval(model, train_X, train_Y))
+            train_accuracies.append(accuracy(model, train_X, train_Y))
+            val_errors.append(optimizer.loss_function.eval(model, val_X, val_Y))
+            val_accuracies.append(accuracy(model, val_X, val_Y))
             
-            current_val_accuracy = MSE(model, val_X, val_Y)
-            if current_val_accuracy < best_val_accuracy:
-                best_val_accuracy = current_val_accuracy
+            current_val_error = optimizer.loss_function.eval(model, val_X, val_Y)
+            if current_val_error < best_val_error:
+                best_val_error = current_val_error
                 best_number_of_epochs = t + 1
                 unlucky_steps = 0
             elif unlucky_steps == MAX_UNLUCKY_STEPS:
@@ -54,4 +66,4 @@ def _early_stopping(model, optimizer, train_X, train_Y, val_X, val_Y, MAX_UNLUCK
             else:
                 unlucky_steps += 1
 
-        return best_number_of_epochs
+        return (best_number_of_epochs, train_errors, train_accuracies, val_errors, val_accuracies)
