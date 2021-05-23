@@ -34,4 +34,6 @@ class CrossEntropy:
         return -1/n * C
 
     def gradient(self, last_layer_output, target):
-        return -((target / last_layer_output) - ((1-target)/(1-last_layer_output)))
+        y = target
+        o = last_layer_output
+        return (y - 1) / (o - 1) - y/o
