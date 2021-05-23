@@ -1,23 +1,22 @@
 from math import ceil
 import numpy as np
 from MLP.Metrics import accuracy
+from MLP.LossFunctions import MSE, CrossEntropy
 
 def print_epoch_stats(loss_func, model, t, train_X, train_Y, val_X, val_Y):
     train_accuracy = accuracy(model, train_X, train_Y)
     val_accuracy = accuracy(model, val_X, val_Y)
-    print(f'Epoch {t+1} | MSE = {loss_func.eval(model, train_X, train_Y)} | Training accuracy = {train_accuracy} | Validation accuracy = {val_accuracy}')
+    print(f'Epoch {t+1} | {loss_func.name} = {loss_func.eval(model, train_X, train_Y)} | Training accuracy = {train_accuracy} | Validation accuracy = {val_accuracy}')
 
 
 def print_epoch_stats(loss_func, model, t, X, Y):
     train_accuracy = accuracy(model, X, Y)
-    print(f'Epoch {t+1} | MSE = {loss_func.eval(model, X, Y)} | Training accuracy = {train_accuracy}')
+    print(f'Epoch {t+1} | {loss_func.name} = {loss_func.eval(model, X, Y)} | Training accuracy = {train_accuracy}')
 
 
 # Gradient Descent optimization supporting
 # Online or Batch learning and Early Stopping Regularization
 class GradientDescent:
-    # TODO: Maybe change MLP.LossFunctions.MSE to a function instead of a class, remove the L2 parameter from it
-    #       and pass it here. then we can call 'loss_function(model, L2, X, Y)' for example to compute the MSE
     def __init__(self, loss_function, lr: float = 0.01, momentum: float = 0.5, BATCH_SIZE = 10):
         self.loss_function = loss_function
         self.lr = lr
@@ -105,7 +104,7 @@ class GradientDescent:
 
         # Backward computation
         # Output layer
-        d_error_over_d_output = activations[-1] - y
+        d_error_over_d_output = self.loss_function.gradient(activations[-1], y)
         d_E_over_d_net = d_error_over_d_output * net_activation_derivative[-1]
         delta_W[-1] += d_E_over_d_net * activations[-1]
         delta_b[-1] += d_E_over_d_net

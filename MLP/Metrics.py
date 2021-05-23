@@ -16,7 +16,8 @@ def MSE(model, X, Y, L2 = 0) -> float:
 def accuracy(model, X, Y) -> float:
     corrects = 0
     for i in range(X.shape[0]):
-        if Y[i] == (1 if model.predict(X[i]) >= 0 else -1):
+        # TODO: the threshold and output values should be derived from somewhere
+        if Y[i] == (1 if model.predict(X[i]) >= 0.5 else 0):
             corrects += 1
     return corrects / X.shape[0]
 

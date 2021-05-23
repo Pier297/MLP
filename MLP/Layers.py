@@ -20,6 +20,11 @@ class Dense:
         if activation_func == 'tanh':
             self.activation_func = np.tanh
             self.activation_func_derivative = lambda x: (1 - np.tanh(x)**2)
+        elif activation_func == 'sigmoid':
+            self.activation_func = lambda x: 1 / (1 + np.exp(-x))
+            self.activation_func_derivative = lambda x: self.activation_func(x) * (1 - self.activation_func(x))
+        else:
+            raise ValueError(f'{activation_func} not supported as a layer activation function.')
 
     def forward(self, x):
         return self.activation_func(self.net(x))

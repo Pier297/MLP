@@ -30,12 +30,12 @@ def split_train_set(train_X, train_Y, train_prop):
 # 'number' can be 1, 2 or 3
 # It returns the dataset splitted into training and test set.
 # Already handling the one-hot representation
-def load_monk(number: int):
-    (train_X, train_Y) = _load_monk(f'MLP/experiments/data/monks-{str(number)}.train')
-    (test_X, test_Y) = _load_monk(f'MLP/experiments/data/monks-{str(number)}.test')
+def load_monk(number: int, target_domain=(-1, 1)):
+    (train_X, train_Y) = _load_monk(f'MLP/experiments/data/monks-{str(number)}.train', target_domain)
+    (test_X, test_Y) = _load_monk(f'MLP/experiments/data/monks-{str(number)}.test', target_domain)
     return (train_X, train_Y, test_X, test_Y)
 
-def _load_monk(file_name: str):
+def _load_monk(file_name: str, target_domain=(-1, 1)):
     X, Y = [], []
     with open(file_name) as f:
         for line in f.readlines():
@@ -45,7 +45,8 @@ def _load_monk(file_name: str):
             # ['1', '3', '3', '2', '3', '4', '2']
             line = [int(x) for x in line]
             # [1, 3, 3, 2, 3, 4, 2]
-            out = 1 if line[0] == 1 else -1
+            # TODO: If we use cross-entropy the output must be in [0;1]
+            out = target_domain[1] if line[0] == 1 else target_domain[0]
             x1 = one_hot(line[1], 3)
             x2 = one_hot(line[2], 3)
             x3 = one_hot(line[3], 2)
