@@ -6,15 +6,19 @@
 
         cd $HOME$/MLP
 
-1. Activate the virtual environment (Windows Powershell)
+1. Create a new python environment
+
+        python -m venv ./venv/
+
+2. Activate the virtual environment (Windows Powershell)
 
         .\venv\Scripts\Activate.ps1
 
-2. In the root directory ($HOME$/MLP/), install dependencies
+3. Install requirements
 
-        pip install -e . 
+        pip install -r requirements.txt
 
-3. Run an experiment
+4. Run an experiment
 
         python MLP/experiments/monk1.py
 
@@ -24,15 +28,19 @@
 
         cd $HOME$/MLP
 
-1. Activate the virtual environment (Bash)
+1. Create a new python environment
+
+        python -m venv ./venv/
+
+2. Activate the virtual environment (bash)
 
         ./venv/Scripts/activate
 
-2. In the root directory ($HOME$/MLP/), install dependencies
+3. Install requirements
 
-        pip install -e . 
+        pip install -r requirements.txt
 
-3. Run an experiment
+4. Run an experiment
 
         python MLP/experiments/monk1.py
 
