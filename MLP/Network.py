@@ -1,4 +1,4 @@
-from MLP.Metrics import accuracy
+from MLP.LossFunctions import accuracy
 from MLP.Layers import Dense
 
 # Defines a Feed-forward neural network and provides
@@ -33,5 +33,5 @@ class Sequential:
     def reset(self):
         model = Sequential()
         for layer in self.layers:
-            model.add(Dense(layer.dimension_in, layer.dimension_out, layer.use_bias, layer.activation_func_name))
+            model.add(Dense(layer.dimension_in, layer.dimension_out, layer.use_bias, (layer.activation_func, layer.activation_func_derivative)))
         return model

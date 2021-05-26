@@ -1,7 +1,6 @@
 from math import ceil
 import numpy as np
-from MLP.Metrics import accuracy
-from MLP.LossFunctions import MSE, CrossEntropy
+from MLP.LossFunctions import accuracy, MSE, CrossEntropy
 
 def print_epoch_stats(loss_func, model, t, train_X, train_Y, val_X, val_Y):
     train_accuracy = accuracy(model, train_X, train_Y)
@@ -17,9 +16,10 @@ def print_epoch_stats(loss_func, model, t, X, Y):
 # Gradient Descent optimization supporting
 # Online or Batch learning and Early Stopping Regularization
 class GradientDescent:
-    def __init__(self, loss_function, lr: float = 0.01, momentum: float = 0.5, BATCH_SIZE = 10):
+    def __init__(self, loss_function, lr: float = 0.01, l2: float = 0.0, momentum: float = 0.5, BATCH_SIZE = 10):
         self.loss_function = loss_function
         self.lr = lr
+        self.l2 = l2
         self.momentum = momentum
         self.BATCH_SIZE = BATCH_SIZE
 
@@ -43,7 +43,7 @@ class GradientDescent:
                 # TODO: This sampling is not i.i.d.
                 mini_batch = dataset[i * self.BATCH_SIZE:(i * self.BATCH_SIZE) + self.BATCH_SIZE][:]
                 self.step(model, mini_batch)
-            
+
             train_errors.append(self.loss_function.eval(model, X, Y))
             train_accuracies.append(accuracy(model, X, Y))
             val_errors.append(self.loss_function.eval(model, val_X, val_Y))
@@ -71,7 +71,7 @@ class GradientDescent:
             layer.W = layer.W + self.momentum * self.prev_delta_W[i]
             if layer.use_bias:
                 layer.b = layer.b + self.momentum * self.prev_delta_b[i]
-        
+
         # Compute the gradient
         for point in mini_batch:
             x = point[:input_dimension].T
@@ -81,9 +81,9 @@ class GradientDescent:
             #       then we do this iteration only once when we update the weights outside this loop.
             #       (ofc make delta_W & delta_b also tensors in the backpropage method)
             for i in range(len(delta_W)):
-                delta_W[i] += new_delta_W[i] + (self.loss_function.L2 * model.layers[i].W)
-                delta_b[i] += new_delta_b[i] + (self.loss_function.L2 * model.layers[i].b)
-        
+                delta_W[i] += new_delta_W[i] + (self.l2 * model.layers[i].W)
+                delta_b[i] += new_delta_b[i] + (self.l2 * model.layers[i].b)
+
         # Compute velocity update and apply update:
         for i, layer in enumerate(model.layers):
             self.prev_delta_W[i] = self.momentum * self.prev_delta_W[i] - ((self.lr/self.BATCH_SIZE) * delta_W[i])

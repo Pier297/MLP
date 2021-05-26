@@ -1,8 +1,10 @@
 from MLP.Network import Sequential
 from MLP.Layers import Dense
 from MLP.Optimizers import GradientDescent
-from MLP.Metrics import plot_learning_curves, plot_accuracies
-from MLP.Regularizers import early_stopping
+from MLP.Plotting import plot_learning_curves, plot_accuracies
+from MLP.LossFunctions import CrossEntropy, MSE
+from MLP.GridSearch import GridSearch, generate_hyperparameters
+from MLP.ModelSelection import early_stopping
 
 from MLP.experiments.utils import load_monk, set_seed, split_train_set
 

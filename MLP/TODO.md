@@ -6,6 +6,7 @@
 - batch normalization?
 - adam
 - dropout & relu layer
+- add l2 when applying gradient of the loss function (last layer)
 
 ### EXTRA:
 - computational graph?
