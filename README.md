@@ -18,7 +18,11 @@
 
         pip install -r requirements.txt
 
-4. Run an experiment
+4. Build package
+
+        pip install -e .
+
+5. Run an experiment
 
         python MLP/experiments/monk1.py
 
@@ -40,7 +44,11 @@
 
         pip install -r requirements.txt
 
-4. Run an experiment
+4. Build package
+
+        pip install -e .
+
+5. Run an experiment
 
         python MLP/experiments/monk1.py
 
