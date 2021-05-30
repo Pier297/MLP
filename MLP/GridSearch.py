@@ -1,27 +1,9 @@
 from MLP.Optimizers import GradientDescent
 from MLP.Network import Sequential
-from MLP.ModelSelection import early_stopping
+from MLP.Regularizers import early_stopping
 from MLP.LossFunctions import CrossEntropy, MSE
 from MLP.experiments.utils import set_seed
 from math import inf
-
-# Given for each hyperparameter a list of possible values Returns a list of hyperparameters configurations, where each conf is a dictionary
-def generate_hyperparameters(loss_func_values, lr_values, L2_values, momentum_values, hidden_layers_values, BATCH_SIZE_values):
-    i = 0
-    configurations = []
-    for loss_func in loss_func_values:
-        for lr in lr_values:
-            for L2 in L2_values:
-                for momentum in momentum_values:
-                    for hidden_layers in hidden_layers_values:
-                        for BATCH_SIZE in BATCH_SIZE_values:
-                            configurations.append({"loss_function": loss_func, "lr": lr, "L2": L2, "momentum": momentum, "hidden_layers": hidden_layers, "BATCH_SIZE": BATCH_SIZE})
-                            i += 1
-    print(f"Generated {i} hyperparameters")
-    if i > 100:
-        raise ValueError("calm down.")
-    return configurations
-
 
 
 
@@ -33,12 +15,11 @@ def generate_hyperparameters(loss_func_values, lr_values, L2_values, momentum_va
 #    momentum: float,
 #    BATCH_SIZE: int
 # }]
-def GridSearch(hyperparameters, in_dimension, out_dimension, train_X, train_Y, val_X, val_Y, MAX_UNLUCKY_STEPS = 50, MAX_EPOCHS = 500, seed = 1):
+def OldGridSearch(hyperparameters, in_dimension, out_dimension, train_X, train_Y, val_X, val_Y, MAX_UNLUCKY_STEPS = 50, MAX_EPOCHS = 500, seed = 1):
     val_errors = [0 for i in range(len(hyperparameters))] # List of (val_error, n_epochs)
     # TODO: Do this in parallel
     k = 3
     for i, conf in enumerate(hyperparameters):
-        set_seed(seed + i)
         model = Sequential()
         model.from_configuration(conf, in_dimension, out_dimension)
         if conf['loss_function'] == 'MSE':
@@ -56,7 +37,6 @@ def GridSearch(hyperparameters, in_dimension, out_dimension, train_X, train_Y, v
             if _val_errors[epochs] < min_val_error:
                 best_conf = {'epochs': epochs, 'train_errors': train_errors, 'train_accuracies': train_accuracies, 'val_errors': _val_errors, 'val_accuracies': val_accuracies}
                 min_val_error = _val_errors[epochs]
-            set_seed(seed + i + j)
             model = model.reset()
         print(f'{i} / {len(hyperparameters)}')
         # TODO: Avoid saving training, val errors
@@ -73,3 +53,21 @@ def GridSearch(hyperparameters, in_dimension, out_dimension, train_X, train_Y, v
     best = hyperparameters[id_best]
     best["epochs"] = val_errors[id_best][0]
     return best, val_errors[id_best][2], val_errors[id_best][3], val_errors[id_best][4], val_errors[id_best][5]
+
+
+# Given for each hyperparameter a list of possible values Returns a list of hyperparameters configurations, where each conf is a dictionary
+def generate_hyperparameters(loss_func_values, lr_values, l2_values, momentum_values, hidden_layers_values, BATCH_SIZE_values):
+    i = 0
+    configurations = []
+    for loss_func in loss_func_values:
+        for lr in lr_values:
+            for l2 in l2_values:
+                for momentum in momentum_values:
+                    for hidden_layers in hidden_layers_values:
+                        for BATCH_SIZE in BATCH_SIZE_values:
+                            configurations.append({"loss_function": loss_func, "lr": lr, "l2": l2, "momentum": momentum, "hidden_layers": hidden_layers, "BATCH_SIZE": BATCH_SIZE})
+                            i += 1
+    print(f"Generated {i} hyperparameters")
+    if i > 200:
+        raise ValueError("calm down.")
+    return configurations

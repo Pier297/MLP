@@ -1,37 +1,28 @@
-from MLP.LossFunctions import accuracy
-from MLP.Layers import Dense
+from MLP.Layers import Dense, forward
 
-# Defines a Feed-forward neural network and provides
-# a 'fit' method which is then used by the Model Selector.
-class Sequential:
-    def __init__(self):
-        self.layers = []
+def Sequential(configuration, in_dimension, out_dimension):
+    model = {}
+    model["layers"] = []
+    # Add weights
+    model["layers"].append(Dense(in_dimension, configuration["hidden_layers"][0]))
+    for i in range(len(configuration["hidden_layers"]) - 1):
+        model["layers"].append(Dense(configuration["hidden_layers"][i], configuration["hidden_layers"][i + 1]))
+    model["layers"].append(Dense(configuration["hidden_layers"][-1], out_dimension))
 
-    def from_configuration(self, configuration, in_dimension, out_dimension):
-        self.add(Dense(in_dimension, configuration["hidden_layers"][0]))
-        for i in range(len(configuration["hidden_layers"]) - 1):
-            self.add(Dense(configuration["hidden_layers"][i], configuration["hidden_layers"][i + 1]))
-        self.add(Dense(configuration["hidden_layers"][-1], out_dimension))
+    return model
 
-    def add(self, layer):
-        self.layers.append(layer)
 
-    def predict(self, x):
-        for layer in self.layers:
-            x = layer.forward(x)
-        return x
+def predict(model, x):
+    for layer in model["layers"]:
+        x = forward(layer, x)
+    return x
 
-    # Returns (train_errors, train_accuracies, val_errors, val_accuracies)
-    # TODO: Remove me or change me to either early stopping or model selection..
-    def fit(self, train_X, train_Y, val_X, val_Y, optimizer):
-        return optimizer.optimize(self, train_X, train_Y, val_X, val_Y)
 
-    def evaluate(self, test_X, test_Y):
-        print(f'\nTest accuracy = {accuracy(self, test_X, test_Y)}')
+def reset(old_model):
+    model = {}
+    model["layers"] = []
 
-    # Returns a copy of itself with randomly initialized parameters.
-    def reset(self):
-        model = Sequential()
-        for layer in self.layers:
-            model.add(Dense(layer.dimension_in, layer.dimension_out, layer.use_bias, (layer.activation_func, layer.activation_func_derivative)))
-        return model
+    for layer in old_model["layers"]:
+        model["layers"].append(Dense(layer["dimension_in"], layer["dimension_out"], layer["use_bias"], (layer["activation_func"], layer["activation_func_derivative"])))
+    
+    return model
