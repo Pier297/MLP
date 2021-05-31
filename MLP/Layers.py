@@ -1,5 +1,5 @@
 import numpy as np
-from MLP.ActivationFunctions import Tanh
+from MLP.ActivationFunctions import Tanh, Sigmoid
 from math import sqrt
 
 def Dense(dimension_in: int, dimension_out: int, use_bias=True, activation_func=Tanh()):

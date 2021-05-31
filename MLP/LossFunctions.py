@@ -54,11 +54,13 @@ class CrossEntropy:
     def gradient(self, last_layer_output, target):
         y = target
         o = last_layer_output
+        # TODO: Possible division by zero because of o-1
         return (y - 1) / (o - 1) - y/o
 
-def accuracy(model, X, Y) -> float:
+
+def accuracy(model, X, Y, target_domain=(-1, 1)) -> float:
     corrects = 0
     for i in range(X.shape[0]):
-        if Y[i] == (1 if predict(model, X[i]) >= 0 else -1):
+        if Y[i] == (target_domain[1] if predict(model, X[i]) >= (target_domain[0] + target_domain[1])/2 else target_domain[0]):
             corrects += 1
     return corrects / X.shape[0]

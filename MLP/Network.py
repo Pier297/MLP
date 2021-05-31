@@ -1,13 +1,13 @@
 from MLP.Layers import Dense, forward
 
-def Sequential(configuration, in_dimension, out_dimension):
+def Sequential(configuration, in_dimension, out_dimension, hidden_layers_activations):
     model = {}
     model["layers"] = []
     # Add weights
-    model["layers"].append(Dense(in_dimension, configuration["hidden_layers"][0]))
+    model["layers"].append(Dense(in_dimension, configuration["hidden_layers"][0], activation_func=hidden_layers_activations[0]))
     for i in range(len(configuration["hidden_layers"]) - 1):
-        model["layers"].append(Dense(configuration["hidden_layers"][i], configuration["hidden_layers"][i + 1]))
-    model["layers"].append(Dense(configuration["hidden_layers"][-1], out_dimension))
+        model["layers"].append(Dense(configuration["hidden_layers"][i], configuration["hidden_layers"][i + 1], activation_func=hidden_layers_activations[i + 1]))
+    model["layers"].append(Dense(configuration["hidden_layers"][-1], out_dimension, activation_func=hidden_layers_activations[-1]))
 
     return model
 

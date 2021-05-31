@@ -4,7 +4,7 @@ from MLP.LossFunctions import accuracy, MSE, CrossEntropy
 from MLP.Layers import forward, net
 
 def print_epoch_stats(loss_func, model, t, train_X, train_Y, val_X, val_Y):
-    print(f'Epoch {t+1} | Train MSE = {loss_func.eval(model, train_X, train_Y)} | Validation MSE = {loss_func.eval(model, val_X, val_Y)}')
+    print(f'Epoch {t+1} | Train {loss_func.name} = {loss_func.eval(model, train_X, train_Y)} | Validation {loss_func.name} = {loss_func.eval(model, val_X, val_Y)}')
 
 
 """ def print_epoch_stats(loss_func, model, t, X, Y):
