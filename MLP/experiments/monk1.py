@@ -14,8 +14,8 @@ set_seed(1)
 target_domain=(0, 1)
 hidden_layers_activations = [Tanh(), Sigmoid()]
 
-(train_X, train_Y, test_X, test_Y) = load_monk(1, target_domain)
-(train_X, train_Y, val_X, val_Y) = split_train_set(train_X, train_Y, 0.8)
+(training_data_X, training_data_Y, test_X, test_Y) = load_monk(1, target_domain)
+(train_X, train_Y, val_X, val_Y) = split_train_set(training_data_X, training_data_Y, 0.8)
 
 
 def run_grid_search(conf, train_X=train_X, train_Y=train_Y, val_X=val_X, val_Y=val_Y, hidden_layers_activations=hidden_layers_activations):
@@ -75,9 +75,10 @@ if __name__ == '__main__':
     elif best_hyperparameters['loss_function'] == 'Cross Entropy':
         loss_func = CrossEntropy()
 
-    (train_errors, val_errors) = Gradient_descent(model, train_X, train_Y, val_X, val_Y, loss_func, lr=best_hyperparameters["lr"], l2=best_hyperparameters["l2"], momentum=best_hyperparameters["momentum"], BATCH_SIZE=best_hyperparameters["BATCH_SIZE"], MAX_EPOCHS=best_epochs)
 
-    print("Train accuracy =", accuracy(model, train_X, train_Y, target_domain))
+    (train_errors, val_errors) = Gradient_descent(model, training_data_X, training_data_Y, val_X, val_Y, loss_func, lr=best_hyperparameters["lr"], l2=best_hyperparameters["l2"], momentum=best_hyperparameters["momentum"], BATCH_SIZE=best_hyperparameters["BATCH_SIZE"], MAX_EPOCHS=best_epochs)
+
+    print("Train accuracy =", accuracy(model, training_data_X, training_data_Y, target_domain))
     print("Validation accuracy =", accuracy(model, val_X, val_Y, target_domain))
     #print("Test accuracy =", accuracy(model, test_X, test_Y, target_domain))
 
