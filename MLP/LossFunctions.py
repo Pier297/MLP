@@ -48,6 +48,8 @@ class CrossEntropy:
         for i in range(n):
             a = predict(model, X[i])
             y = Y[i]
+            if a == 1:
+                print('panic')
             c += np.sum(y * np.log(a) + (1 - y) * np.log(1 - a))
         return -1/n * c
 

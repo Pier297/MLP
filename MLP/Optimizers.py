@@ -13,9 +13,11 @@ def print_epoch_stats(loss_func, model, t, train_X, train_Y, val_X, val_Y):
 
 
 # Returns (train_errors, val_errors)
-def Gradient_descent(model, train_X, train_Y, val_X, val_Y, loss_function, lr: float, l2: float, momentum: float, BATCH_SIZE: int = 10, MAX_EPOCHS: int = 100):
+def Gradient_descent(model, train_X, train_Y, val_X, val_Y, loss_function, lr: float, l2: float, momentum: float, BATCH_SIZE: int = 10, MAX_EPOCHS: int = 100, target_domain=(-1, 1)):
     train_errors = [loss_function.eval(model, train_X, train_Y)]
+    train_accuracies = [accuracy(model, train_X, train_Y, target_domain=target_domain)]
     val_errors = [loss_function.eval(model, val_X, val_Y)]
+    val_accuracies = [accuracy(model, val_X, val_Y, target_domain=target_domain)]
 
     # Initialize to 0 the prev delta (used for momentum)
     prev_delta_W = [np.zeros(layer["W"].shape) for layer in model["layers"]]
@@ -33,9 +35,11 @@ def Gradient_descent(model, train_X, train_Y, val_X, val_Y, loss_function, lr: f
             step(model, mini_batch, BATCH_SIZE, loss_function, lr, l2, momentum, prev_delta_W, prev_delta_b)
 
         train_errors.append(loss_function.eval(model, train_X, train_Y))
+        train_accuracies.append(accuracy(model, train_X, train_Y, target_domain=target_domain))
         val_errors.append(loss_function.eval(model, val_X, val_Y))
+        val_accuracies.append(accuracy(model, val_X, val_Y, target_domain=target_domain))
         print_epoch_stats(loss_function, model, t, train_X, train_Y, val_X, val_Y)
-    return (train_errors, val_errors)
+    return (train_errors, val_errors, train_accuracies, val_accuracies)
 
 
 def step(model, mini_batch, BATCH_SIZE, loss_function, lr, l2, momentum, prev_delta_W, prev_delta_b):
@@ -61,11 +65,12 @@ def step(model, mini_batch, BATCH_SIZE, loss_function, lr, l2, momentum, prev_de
     
     # Update the model parameters
     for i in range(len(nabla_W)):
-        prev_delta_W[i] = momentum * prev_delta_W[i] - lr * (nabla_W[i]/BATCH_SIZE + (l2 * model["layers"][i]["W"]))
-        prev_delta_b[i] = momentum * prev_delta_b[i] - lr * (nabla_b[i]/BATCH_SIZE + (l2 * model["layers"][i]["b"]))
+        # TODO: Check this formula in the slides.
+        prev_delta_W[i] = momentum * prev_delta_W[i] - lr/BATCH_SIZE * nabla_W[i]
+        prev_delta_b[i] = momentum * prev_delta_b[i] - lr/BATCH_SIZE * nabla_b[i]
 
-        model["layers"][i]["W"] += prev_delta_W[i]
-        model["layers"][i]["b"] += prev_delta_b[i]
+        model["layers"][i]["W"] += prev_delta_W[i] - l2 * model["layers"][i]["W"]
+        model["layers"][i]["b"] += prev_delta_b[i] - l2 * model["layers"][i]["b"]
 
 
 def backpropagate(model, x, y, loss_function):

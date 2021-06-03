@@ -1,10 +1,13 @@
 from MLP.Optimizers import step
 import numpy as np
+from MLP.LossFunctions import accuracy
 from math import ceil, inf
 
-def early_stopping(model, loss_function, lr: float, l2: float, momentum: float, BATCH_SIZE, train_X, train_Y, val_X, val_Y, MAX_UNLUCKY_STEPS = 10, MAX_EPOCHS = 250):
+def early_stopping(model, loss_function, lr: float, l2: float, momentum: float, BATCH_SIZE, train_X, train_Y, val_X, val_Y, MAX_UNLUCKY_STEPS = 10, MAX_EPOCHS = 250, target_domain=(-1, 1)):
     train_errors = [loss_function.eval(model, train_X, train_Y)]
+    train_accuracies = [accuracy(model, train_X, train_Y, target_domain=target_domain)]
     val_errors = [loss_function.eval(model, val_X, val_Y)]
+    val_accuracies = [accuracy(model, val_X, val_Y, target_domain=target_domain)]
     unlucky_epochs = 0
     best_epoch = 0
     best_val_error = inf
@@ -36,5 +39,7 @@ def early_stopping(model, loss_function, lr: float, l2: float, momentum: float, 
             unlucky_epochs += 1
 
         train_errors.append(loss_function.eval(model, train_X, train_Y))
+        train_accuracies.append(accuracy(model, train_X, train_Y, target_domain=target_domain))
         val_errors.append(current_val_error)
-    return (train_errors, val_errors, best_epoch)
+        val_accuracies.append(accuracy(model, val_X, val_Y, target_domain=target_domain))
+    return (train_errors, train_accuracies, val_errors, val_accuracies, best_epoch)
