@@ -1,3 +1,4 @@
+from multiprocessing import Value
 import numpy as np
 from MLP.Network import predict
 
@@ -5,15 +6,17 @@ class MSE:
     def __init__(self):
         self.name = 'MSE'
 
-    def eval(self, model, X, Y):
+    def eval(self, model, dataset):
         e = 0.0
-        # TODO: Create predict_bacth to avoid this for-loop
-        for i in range(X.shape[0]):
-            e += np.sum((Y[i] - predict(model, X[i]))**2)
-        return e / (2 * X.shape[0])
+        # TODO: Create predict_batch to avoid this for-loop
+        for pattern in dataset:
+            x = pattern[model["in_dimension"]:]
+            y = pattern[:model["in_dimension"]]
+            e += np.sum((y - predict(model, x))**2)
+        return e / (2 * x.shape[0])
 
-    def loss(self, model, X, Y, lam):
-        err = self.eval(model, X, Y)
+    def loss(self, model, dataset, lam):
+        err = self.eval(model, dataset)
         squared_weights_sum = 0.0
         for layer in model["layers"]:
             for row_weights in layer["W"]:
@@ -28,14 +31,16 @@ class CrossEntropy:
     def __init__(self):
         self.name = 'Cross Entropy'
 
-    def eval(self, model, X, Y):
+    def eval(self, model, dataset):
         c = 0.0
-        n = X.shape[0] # number of training samples
-        for i in range(n):
-            a = predict(model, X[i])
-            y = Y[i]
+        for pattern in dataset:
+            x = pattern[model["in_dimension"]:]
+            a = predict(model, x)
+            # This can only be done if there is only *one* output value.
+            # This is the case of classification problems
+            y = pattern[:-1]
             c += np.sum(y * np.log(a) + (1 - y) * np.log(1 - a))
-        return -1/n * c
+        return -1/dataset.shape[0] * c
 
     def gradient(self, last_layer_output, target):
         y = target
@@ -44,9 +49,20 @@ class CrossEntropy:
         return (y - 1) / (o - 1) - y/o
 
 
-def accuracy(model, X, Y, target_domain=(-1, 1)) -> float:
+def loss_function_from_name(name):
+    if name == 'Cross Entropy':
+        return CrossEntropy()
+    elif name == 'MSE':
+        return MSE()
+    else:
+        raise ValueError("Invalid loss function name.")
+
+
+def accuracy(model, dataset, target_domain=(-1, 1)) -> float:
     corrects = 0
-    for i in range(X.shape[0]):
-        if Y[i] == (target_domain[1] if predict(model, X[i]) >= (target_domain[0] + target_domain[1])/2 else target_domain[0]):
+    for i in range(dataset.shape[0]):
+        x = dataset[i][model["in_dimension"]:]
+        y = dataset[i][:model["in_dimension"]]
+        if y == (target_domain[1] if predict(model, x) >= (target_domain[0] + target_domain[1])/2 else target_domain[0]):
             corrects += 1
-    return corrects / X.shape[0]
+    return corrects / dataset.shape[0]

@@ -1,13 +1,19 @@
 from MLP.Layers import Dense, forward
+from MLP.ActivationFunctions import activation_function_from_name
 
-def Sequential(configuration, in_dimension, out_dimension, hidden_layers_activations):
+def Sequential(conf, in_dimension, out_dimension):
     model = {}
     model["layers"] = []
-    # Add weights
-    model["layers"].append(Dense(in_dimension, configuration["hidden_layers"][0], activation_func=hidden_layers_activations[0]))
-    for i in range(len(configuration["hidden_layers"]) - 1):
-        model["layers"].append(Dense(configuration["hidden_layers"][i], configuration["hidden_layers"][i + 1], activation_func=hidden_layers_activations[i + 1]))
-    model["layers"].append(Dense(configuration["hidden_layers"][-1], out_dimension, activation_func=hidden_layers_activations[-1]))
+    model["in_dimension"] = in_dimension
+    model["out_dimension"] = out_dimension
+
+    # Generate the activation functions lambda from their names
+    hidden_activation_functions = [activation_function_from_name(name) for name in conf["hidden_layers_activations"]]
+
+    model["layers"].append(Dense(in_dimension, conf["hidden_layers"][0], activation_func=hidden_activation_functions[0]))
+    for i in range(len(conf["hidden_layers"]) - 1):
+        model["layers"].append(Dense(conf["hidden_layers"][i], conf["hidden_layers"][i + 1], activation_func=hidden_activation_functions[i + 1]))
+    model["layers"].append(Dense(conf["hidden_layers"][-1], out_dimension, activation_func=hidden_activation_functions[-1]))
 
     return model
 
@@ -24,5 +30,5 @@ def reset(old_model):
 
     for layer in old_model["layers"]:
         model["layers"].append(Dense(layer["dimension_in"], layer["dimension_out"], layer["use_bias"], (layer["activation_func"], layer["activation_func_derivative"])))
-    
+
     return model

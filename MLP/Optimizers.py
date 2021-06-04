@@ -3,42 +3,42 @@ import numpy as np
 from MLP.LossFunctions import accuracy, MSE, CrossEntropy
 from MLP.Layers import forward, net
 
-def print_epoch_stats(loss_func, model, t, train_X, train_Y, val_X, val_Y):
-    print(f'Epoch {t+1} | Train {loss_func.name} = {loss_func.eval(model, train_X, train_Y)} | Validation {loss_func.name} = {loss_func.eval(model, val_X, val_Y)}')
-
+def print_epoch_stats(loss_func, model, t, training, validation):
+    print(f'Epoch {t+1} | Train {loss_func.name} = {loss_func.eval(model, training)} | Validation {loss_func.name} = {loss_func.eval(model, validation)}')
 
 # Returns (train_errors, val_errors, train_accuracies, val_accuracies)
-def Gradient_descent(model, train_X, train_Y, val_X, val_Y, loss_function, lr: float, l2: float, momentum: float, BATCH_SIZE: int = 10, MAX_EPOCHS: int = 100, target_domain=(-1, 1)):
-    train_errors = [loss_function.eval(model, train_X, train_Y)]
-    train_accuracies = [accuracy(model, train_X, train_Y, target_domain=target_domain)]
-    val_errors = [loss_function.eval(model, val_X, val_Y)]
-    val_accuracies = [accuracy(model, val_X, val_Y, target_domain=target_domain)]
+def Gradient_descent(model, training, validation, loss_function, lr: float, l2: float, momentum: float, batch_percentage: int = 1.0, MAX_EPOCHS: int = 100, target_domain=(-1, 1)):
+    train_errors = [loss_function.eval(model, training)]
+    train_accuracies = [accuracy(model, training, target_domain=target_domain)]
+    val_errors = [loss_function.eval(model, validation)]
+    val_accuracies = [accuracy(model, validation, target_domain=target_domain)]
 
     # Initialize to 0 the prev delta (used for momentum)
     prev_delta_W = [np.zeros(layer["W"].shape) for layer in model["layers"]]
     prev_delta_b = [np.zeros(layer["b"].shape) for layer in model["layers"]]
 
+    batch_size = int(training.shape[0] * batch_percentage)
+
     for t in range(MAX_EPOCHS):
         # Shuffle the training data
         # TODO: Sample the mini-batches correctly? This sampling is not i.i.d.
-        dataset = np.column_stack((train_X, train_Y))
         dataset = np.random.permutation(dataset)
         # For each minibatch apply gradient descent
-        for i in range(0, ceil(dataset.shape[0] / BATCH_SIZE)):
-            mini_batch = dataset[i * BATCH_SIZE:(i * BATCH_SIZE) + BATCH_SIZE][:]
+        for i in range(0, ceil(dataset.shape[0] / batch_size)):
+            mini_batch = dataset[i * batch_size:(i * batch_size) + batch_size][:]
             # Perform a gradient descent update on the mini-batch
-            step(model, mini_batch, BATCH_SIZE, loss_function, lr, l2, momentum, prev_delta_W, prev_delta_b)
+            gradient_descent_step(model, mini_batch, batch_size, loss_function, lr, l2, momentum, prev_delta_W, prev_delta_b)
 
-        train_errors.append(loss_function.eval(model, train_X, train_Y))
-        train_accuracies.append(accuracy(model, train_X, train_Y, target_domain=target_domain))
-        val_errors.append(loss_function.eval(model, val_X, val_Y))
-        val_accuracies.append(accuracy(model, val_X, val_Y, target_domain=target_domain))
-        print_epoch_stats(loss_function, model, t, train_X, train_Y, val_X, val_Y)
+        train_errors.append(loss_function.eval(model, training))
+        val_errors.append(loss_function.eval(model, validation))
+        train_accuracies.append(accuracy(model, training, target_domain=target_domain))
+        val_accuracies.append(accuracy(model, validation, target_domain=target_domain))
+        print_epoch_stats(loss_function, model, t, training, validation)
     return (train_errors, train_accuracies, val_errors, val_accuracies)
 
 
-def step(model, mini_batch, BATCH_SIZE, loss_function, lr, l2, momentum, prev_delta_W, prev_delta_b):
-    # TODO: BATCH_SIZE can be computed here, no need to be a parameter.
+def gradient_descent_step(model, mini_batch, batch_size, loss_function, lr, l2, momentum, prev_delta_W, prev_delta_b):
+    # TODO: batch_size can be computed here, no need to be a parameter.
     nabla_W = []
     nabla_b = []
     for layer in model["layers"]:
@@ -57,10 +57,9 @@ def step(model, mini_batch, BATCH_SIZE, loss_function, lr, l2, momentum, prev_de
         for i in range(len(nabla_W)):
             nabla_W[i] += new_nabla_W[i]
             nabla_b[i] += new_nabla_b[i]
-    
+
     # Update the model parameters
     for i in range(len(nabla_W)):
-        # TODO: Check this formula in the slides.
         prev_delta_W[i] = momentum * prev_delta_W[i] - lr/BATCH_SIZE * nabla_W[i]
         prev_delta_b[i] = momentum * prev_delta_b[i] - lr/BATCH_SIZE * nabla_b[i]
 

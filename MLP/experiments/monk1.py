@@ -1,50 +1,84 @@
 from MLP.Network import Sequential
 from MLP.Optimizers import Gradient_descent
 from MLP.Plotting import plot_learning_curves, plot_accuracies
-from MLP.LossFunctions import CrossEntropy, MSE, accuracy
+from MLP.LossFunctions import CrossEntropy, MSE, accuracy, loss_function_from_name
 from MLP.GridSearch import generate_hyperparameters
 from MLP.experiments.utils import load_monk, set_seed, split_train_set
 from multiprocessing import Pool, cpu_count
 from MLP.Regularizers import early_stopping
 from MLP.ActivationFunctions import Tanh, Sigmoid
+import numpy as np
 from itertools import repeat
 from math import inf
 
 set_seed(2)
 
-def run_grid_search(args):
-    conf, (train_X, train_Y, val_X, val_Y, activations_functions_names, target_domain) = args
-    hidden_layers_activations = [Tanh() if func_str == 'tanh' else Sigmoid() for func_str in activations_functions_names]
-    # Train the net on 'conf' and return (best_val_error, best_epoch)
-    dimension_in = train_X[0].shape[0]
-    dimension_out = train_Y[0].shape[0]
+def kfold_grid_search(hyperparameters, training, activations_functions_names, target_domain, k):
 
-    # How many times to repeat the training with the same configuration in order to reduce the validation error variance
-    K = 3
-    best_config = {'val_error': inf, 'epochs': 0, 'train_errors': [], 'val_errors': [], 'train_accuracies': [], 'val_accuracies': []}
-    for t in range(K):
-        model = Sequential(conf, dimension_in, dimension_out, hidden_layers_activations)
+    folded_dataset = 1 # TODO
 
-        if conf["loss_function"] == "MSE":
-            loss_func = MSE()
-        elif conf["loss_function"] == "Cross Entropy":
-            loss_func = CrossEntropy()
+    with Pool(processes=cpu_count()) as pool: # For each hyperparameter
+       results = pool.map(kfold, zip(hyperparameters, repeat((folded_dataset, target_domain))))
 
-        (train_errors, train_accuracies, val_errors, val_accuracies, early_best_epoch) = early_stopping(model, loss_func, conf["lr"], conf["l2"], conf["momentum"], conf["BATCH_SIZE"], train_X, train_Y, val_X, val_Y, MAX_UNLUCKY_STEPS=50, MAX_EPOCHS=500, target_domain=target_domain)
-        current_val_error = val_errors[early_best_epoch-1]
-        if current_val_error < best_config['val_error']:
-            best_config = {'val_error': current_val_error, 'epochs': early_best_epoch, 'train_errors': train_errors, 'val_errors': val_errors, 'train_accuracies': train_accuracies, 'val_accuracies': val_accuracies}
-    
-    return best_config
+def kfold(args):
+    conf, (folded_dataset, in_dimension, out_dimension, target_domain) = args
+
+    model = Sequential(conf, in_dimension, out_dimension)
+
+    loss_func = loss_function_from_name(conf["loss_func"])
+
+    for i in range(len(folded_dataset)):
+        validation = folded_dataset[i]
+        training = [fold for fold, j in enumerate(folded_dataset) if i != j]
+
+        (train_errors, train_accuracies, val_errors, val_accuracies, early_best_epoch) = early_stopping(model, loss_func, conf["lr"], conf["l2"], conf["momentum"], conf["batch_percentage"], training, validation, MAX_UNLUCKY_STEPS=50, MAX_EPOCHS=500, target_domain=target_domain)
+
+    return train_errors, train_accuracies, val_errors, val_accuracies, early_best_epoch
+
+
+
+################################################
+
+# def holdout_grid_search(hyperparameters, training, activations_functions_names, target_domain):
+#     return 1
+# 
+# def holdout(args):
+#     conf, (training, target_domain) = args
+#     in_dimension  = training_data_X[0].shape[0]
+#     out_dimension = training_data_Y[0].shape[0]
+# 
+#     model = Sequential(conf, in_dimension, out_dimension)
+# 
+#     loss_func = loss_function_from_name(conf["loss_func"])
+# 
+#     (train_errors, train_accuracies, val_errors, val_accuracies, early_best_epoch) = early_stopping(model, loss_func, conf["lr"], conf["l2"], conf["momentum"], conf["batch_percentage"], train_X, train_Y, validation, MAX_UNLUCKY_STEPS=50, MAX_EPOCHS=500, target_domain=target_domain)
+# 
+#     return train_errors, train_accuracies, val_errors, val_accuracies, early_best_epoch
+# 
+# def run_grid_search(args):
+#     # Train the net on 'conf' and return (best_val_error, best_epoch)
+# 
+#     loss_func = loss_function_from_name(conf["loss_func"])
+# 
+#     # How many times to repeat the training with the same configuration in order to reduce the validation error variance
+#     K = 3
+#     best_config = {'val_error': inf, 'epochs': 0, 'train_errors': [], 'val_errors': [], 'train_accuracies': [], 'val_accuracies': []}
+#     for t in range(K):
+#         train_errors, train_accuracies, val_errors, val_accuracies, early_best_epoch = validation_function(conf, training, activations_functions_names, target_domain)
+#         current_val_error = val_errors[early_best_epoch-1]
+#         if current_val_error < best_config['val_error']:
+#             best_config = {'val_error': current_val_error, 'epochs': early_best_epoch, 'train_errors': train_errors, 'val_errors': val_errors, 'train_accuracies': train_accuracies, 'val_accuracies': val_accuracies}
+# 
+#     return best_config
+
+################################################
+
 
 
 if __name__ == '__main__':
     target_domain=(0, 1)
-    hidden_layers_activations = ['tanh', 'sigmoid']
 
-    (training_data_X, training_data_Y, test_X, test_Y) = load_monk(1, target_domain)
-    (train_X, train_Y, val_X, val_Y) = split_train_set(training_data_X, training_data_Y, 0.8)
-    
+    (training, test) = load_monk(1, target_domain)
 
     hyperparameters = generate_hyperparameters(
         loss_func_values = ["Cross Entropy"],
@@ -52,11 +86,21 @@ if __name__ == '__main__':
         l2_values = [0],
         momentum_values = [0],
         hidden_layers_values = [[4]],
-        BATCH_SIZE_values = [train_X.shape[0]]
+        hidden_layers_activations = [['tanh', 'sigmoid']],
+        batch_percentage = [1.0]
     )
 
-    with Pool(processes=cpu_count() - 1) as pool:
-        results = pool.map(run_grid_search, zip(hyperparameters, repeat((train_X, train_Y, val_X, val_Y, hidden_layers_activations, target_domain))))
+    validation_type = 'kfold'
+    kfold_k         = 5
+    in_dimension    = 17
+    out_dimension   = 1
+
+    if validation_type == 'holdout':
+        results = holdout(hyperparameters, training, in_dimension, out_dimension, target_domain)
+    elif validation_type == 'kfold':
+        results = kfold(hyperparameters, training, in_dimension, out_dimension, target_domain, k=kfold_k)
+    else:
+        raise ValueError(f'Unknown validation type: {validation_type}')
 
     best_val_error = inf
     best_epochs = 0
@@ -71,20 +115,14 @@ if __name__ == '__main__':
 
     best_hyperparameters = hyperparameters[idx]
 
-    # --- Define a new model with the best conf. and train on all the data ---
-    hidden_layers_activations = [Tanh() if func_str == 'tanh' else Sigmoid() for func_str in hidden_layers_activations]
-    model = Sequential(best_hyperparameters, in_dimension=17, out_dimension=1, hidden_layers_activations=hidden_layers_activations)
+    # --- Retraining: refine a new model with the best conf. and train on all the data ---
 
-    if best_hyperparameters['loss_function'] == 'MSE':
-        loss_func = MSE()
-    elif best_hyperparameters['loss_function'] == 'Cross Entropy':
-        loss_func = CrossEntropy()
+    model = Sequential(best_hyperparameters, in_dimension=in_dimension, out_dimension=out_dimension)
 
-    (train_errors, train_accuracies, val_errors, val_accuracies) = Gradient_descent(model, training_data_X, training_data_Y, val_X, val_Y, loss_func, lr=best_hyperparameters["lr"], l2=best_hyperparameters["l2"], momentum=best_hyperparameters["momentum"], BATCH_SIZE=best_hyperparameters["BATCH_SIZE"], MAX_EPOCHS=best_epochs, target_domain=target_domain)
+    (train_errors, train_accuracies, val_errors, val_accuracies) = Gradient_descent(model, training, np.array([]), loss_func=loss_function_from_name(best_hyperparameters['loss_function']), lr=best_hyperparameters["lr"], l2=best_hyperparameters["l2"], momentum=best_hyperparameters["momentum"], batch_percentage=best_hyperparameters["batch_percentage"], MAX_EPOCHS=best_epochs, target_domain=target_domain)
 
-    print("Train accuracy =", accuracy(model, training_data_X, training_data_Y, target_domain))
-    print("Validation accuracy =", accuracy(model, val_X, val_Y, target_domain))
-    #print("Test accuracy =", accuracy(model, test_X, test_Y, target_domain))
+    print("Train accuracy =", accuracy(model, training, target_domain))
+    #print("Test accuracy =", accuracy(model, test, target_domain))
 
     print(best_hyperparameters)
     # Plot the learning curve produced on the best trial of the model selection

@@ -1,4 +1,4 @@
-from MLP.Optimizers import step
+from MLP.Optimizers import gradient_descent_step
 import numpy as np
 from MLP.LossFunctions import accuracy
 from math import ceil, inf
@@ -11,7 +11,7 @@ from math import ceil, inf
 # 'MAX_UNLUCKY_STEPS' the validation error hasn't reached a new minima, we return
 # the model trained on the best configuration found on the union of the
 # training and validation set.
-def early_stopping(model, loss_function, lr: float, l2: float, momentum: float, BATCH_SIZE, train_X, train_Y, val_X, val_Y, MAX_UNLUCKY_STEPS = 10, MAX_EPOCHS = 250, target_domain=(-1, 1)):
+def early_stopping(model, loss_function, lr: float, l2: float, momentum: float, batch_percentage, train_X, train_Y, val_X, val_Y, MAX_UNLUCKY_STEPS = 10, MAX_EPOCHS = 250, target_domain=(-1, 1)):
     train_errors = [loss_function.eval(model, train_X, train_Y)]
     train_accuracies = [accuracy(model, train_X, train_Y, target_domain=target_domain)]
     val_errors = [loss_function.eval(model, val_X, val_Y)]
@@ -24,16 +24,19 @@ def early_stopping(model, loss_function, lr: float, l2: float, momentum: float, 
     prev_delta_W = [np.zeros(layer["W"].shape) for layer in model["layers"]]
     prev_delta_b = [np.zeros(layer["b"].shape) for layer in model["layers"]]
 
+    batch_size = int(batch_percentage * train_X.shape[0])
+
     for t in range(MAX_EPOCHS):
         # Shuffle the training data
         # TODO: Sample the mini-batches correctly? This sampling is not i.i.d.
         dataset = np.column_stack((train_X, train_Y))
         dataset = np.random.permutation(dataset)
+
         # For each minibatch apply gradient descent
-        for i in range(0, ceil(dataset.shape[0] / BATCH_SIZE)):
-            mini_batch = dataset[i * BATCH_SIZE:(i * BATCH_SIZE) + BATCH_SIZE][:]
+        for i in range(0, ceil(dataset.shape[0] / batch_size)):
+            mini_batch = dataset[i * batch_size:(i * batch_size) + batch_size][:]
             # Perform a gradient descent update on the mini-batch
-            step(model, mini_batch, BATCH_SIZE, loss_function, lr, l2, momentum, prev_delta_W, prev_delta_b)
+            gradient_descent_step(model, mini_batch, batch_size, loss_function, lr, l2, momentum, prev_delta_W, prev_delta_b)
 
         # Early stopping logic
         current_val_error = loss_function.eval(model, val_X, val_Y)

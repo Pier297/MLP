@@ -16,7 +16,7 @@ def split_train_set(train_X, train_Y, train_prop):
     # TODO: Is it correct to force at least 1 item into the sets?
     new_train_X, new_train_Y = np.array([dataset[0][:-1]]), np.array([dataset[0][-1]])
     new_val_X, new_val_Y = np.array([dataset[1][:-1]]), np.array([dataset[1][-1]])
-    
+
     for p in dataset[2:]:
         if np.random.rand() <= train_prop:
             new_train_X = np.vstack([new_train_X, p[:-1]])
@@ -31,12 +31,12 @@ def split_train_set(train_X, train_Y, train_prop):
 # It returns the dataset splitted into training and test set.
 # Already handling the one-hot representation
 def load_monk(number: int, target_domain=(-1, 1)):
-    (train_X, train_Y) = _load_monk(f'MLP/experiments/data/monks-{str(number)}.train', target_domain)
-    (test_X, test_Y) = _load_monk(f'MLP/experiments/data/monks-{str(number)}.test', target_domain)
-    return (train_X, train_Y, test_X, test_Y)
+    training = _load_monk(f'MLP/experiments/data/monks-{str(number)}.train', target_domain)
+    test = _load_monk(f'MLP/experiments/data/monks-{str(number)}.test', target_domain)
+    return (training, test)
 
 def _load_monk(file_name: str, target_domain=(-1, 1)):
-    X, Y = [], []
+    data = []
     with open(file_name) as f:
         for line in f.readlines():
             line = line.split(' ')
@@ -55,9 +55,8 @@ def _load_monk(file_name: str, target_domain=(-1, 1)):
             x6 = one_hot(line[6], 2)
             x = np.concatenate((x1, x2, x3, x4, x5, x6))
             y = [out]
-            X.append(x)
-            Y.append(y)
-    return np.array(X), np.array(Y)
+            data.append(np.concatenate([x, y]))
+    return np.array(data)
 
 def one_hot(x, k):
     r = np.zeros(k, dtype=int)
