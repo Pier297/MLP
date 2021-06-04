@@ -19,9 +19,6 @@ def run_grid_search(args):
     dimension_in = train_X[0].shape[0]
     dimension_out = train_Y[0].shape[0]
 
-    val_errors = []
-    epochs = []
-
     # How many times to repeat the training with the same configuration in order to reduce the validation error variance
     K = 3
     best_config = {'val_error': inf, 'epochs': 0, 'train_errors': [], 'val_errors': [], 'train_accuracies': [], 'val_accuracies': []}
@@ -47,6 +44,7 @@ if __name__ == '__main__':
 
     (training_data_X, training_data_Y, test_X, test_Y) = load_monk(1, target_domain)
     (train_X, train_Y, val_X, val_Y) = split_train_set(training_data_X, training_data_Y, 0.8)
+    
 
     hyperparameters = generate_hyperparameters(
         loss_func_values = ["Cross Entropy"],
@@ -72,9 +70,6 @@ if __name__ == '__main__':
             idx = i
 
     best_hyperparameters = hyperparameters[idx]
-    
-    plot_learning_curves(results[idx]['train_errors'], results[idx]['val_errors'])
-    plot_accuracies(results[idx]['train_accuracies'], results[idx]['val_accuracies'], show=True)
 
     # --- Define a new model with the best conf. and train on all the data ---
     hidden_layers_activations = [Tanh() if func_str == 'tanh' else Sigmoid() for func_str in hidden_layers_activations]
@@ -85,11 +80,13 @@ if __name__ == '__main__':
     elif best_hyperparameters['loss_function'] == 'Cross Entropy':
         loss_func = CrossEntropy()
 
-
-    (train_errors, val_errors, train_accuracies, val_accuracies) = Gradient_descent(model, training_data_X, training_data_Y, val_X, val_Y, loss_func, lr=best_hyperparameters["lr"], l2=best_hyperparameters["l2"], momentum=best_hyperparameters["momentum"], BATCH_SIZE=best_hyperparameters["BATCH_SIZE"], MAX_EPOCHS=best_epochs, target_domain=target_domain)
+    (train_errors, train_accuracies, val_errors, val_accuracies) = Gradient_descent(model, training_data_X, training_data_Y, val_X, val_Y, loss_func, lr=best_hyperparameters["lr"], l2=best_hyperparameters["l2"], momentum=best_hyperparameters["momentum"], BATCH_SIZE=best_hyperparameters["BATCH_SIZE"], MAX_EPOCHS=best_epochs, target_domain=target_domain)
 
     print("Train accuracy =", accuracy(model, training_data_X, training_data_Y, target_domain))
     print("Validation accuracy =", accuracy(model, val_X, val_Y, target_domain))
     #print("Test accuracy =", accuracy(model, test_X, test_Y, target_domain))
 
     print(best_hyperparameters)
+    # Plot the learning curve produced on the best trial of the model selection
+    plot_learning_curves(results[idx]['train_errors'], results[idx]['val_errors'])
+    plot_accuracies(results[idx]['train_accuracies'], results[idx]['val_accuracies'], show=True)

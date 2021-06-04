@@ -1,10 +1,9 @@
-- Move 'backward' gradient computation inside the Layer
-- Add accuracy plots
 - kfold
+- plot gradient norm
+- plot weights norm
+- predict_batch in MSE and Cross Entropy
+- learning rate decay
 - model selection --> grid search & random search
 - batch normalization?
 - adam
 - dropout & relu layer
-
-### EXTRA:
-- computational graph?

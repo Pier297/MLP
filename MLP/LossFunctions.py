@@ -1,27 +1,13 @@
 import numpy as np
 from MLP.Network import predict
 
-
-""" def MSE(model, X, Y):
-    e = 0.0
-    for i in range(X.shape[0]):
-        e += np.sum((Y[i] - predict(model, X[i]))**2)
-    return e / (2 * X.shape[0])
-
-
-def loss(model, X, Y, lam):
-    err = MSE(model, X, Y)
-    squared_weights_sum = 0.0
-    for layer in model["layers"]:
-        for row_weights in layer["W"]:
-            squared_weights_sum += np.linalg.norm(row_weights) ** 2
-    return err + ((lam / 2) * squared_weights_sum) """
 class MSE:
     def __init__(self):
         self.name = 'MSE'
 
     def eval(self, model, X, Y):
         e = 0.0
+        # TODO: Create predict_bacth to avoid this for-loop
         for i in range(X.shape[0]):
             e += np.sum((Y[i] - predict(model, X[i]))**2)
         return e / (2 * X.shape[0])
@@ -48,8 +34,6 @@ class CrossEntropy:
         for i in range(n):
             a = predict(model, X[i])
             y = Y[i]
-            if a == 1:
-                print('panic')
             c += np.sum(y * np.log(a) + (1 - y) * np.log(1 - a))
         return -1/n * c
 

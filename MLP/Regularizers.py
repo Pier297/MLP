@@ -3,6 +3,14 @@ import numpy as np
 from MLP.LossFunctions import accuracy
 from math import ceil, inf
 
+# Early stopping:
+# The function works by applying gradient descent onto the training set,
+# and each epoch it checks the error on the validation set to see if it
+# improved. In case it got better we save the current configuration (epochs, ..),
+# otherwise we keep trying for a 'MAX_UNLUCKY_STEPS'. If after
+# 'MAX_UNLUCKY_STEPS' the validation error hasn't reached a new minima, we return
+# the model trained on the best configuration found on the union of the
+# training and validation set.
 def early_stopping(model, loss_function, lr: float, l2: float, momentum: float, BATCH_SIZE, train_X, train_Y, val_X, val_Y, MAX_UNLUCKY_STEPS = 10, MAX_EPOCHS = 250, target_domain=(-1, 1)):
     train_errors = [loss_function.eval(model, train_X, train_Y)]
     train_accuracies = [accuracy(model, train_X, train_Y, target_domain=target_domain)]
