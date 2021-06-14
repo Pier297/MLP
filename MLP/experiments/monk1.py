@@ -1,12 +1,10 @@
 from MLP.Network import Sequential
 from MLP.Optimizers import Gradient_descent
 from MLP.Plotting import plot_learning_curves, plot_accuracies
-from MLP.LossFunctions import CrossEntropy, MSE, accuracy, loss_function_from_name
+from MLP.LossFunctions import accuracy, loss_function_from_name
 from MLP.GridSearch import generate_hyperparameters, grid_search
-from MLP.experiments.utils import load_monk, set_seed, split_train_set
+from MLP.experiments.utils import load_monk, set_seed
 from multiprocessing import cpu_count
-from MLP.Regularizers import early_stopping
-from MLP.ActivationFunctions import Tanh, Sigmoid
 import numpy as np
 from math import inf
 
@@ -19,19 +17,18 @@ if __name__ == '__main__':
 
     hyperparameters = generate_hyperparameters(
         loss_func = "Cross Entropy",
-        hidden_layers_activations = ['tanh', 'sigmoid'],
         in_dimension    = 17,
         out_dimension   = 1,
         target_domain = target_domain,
-        train_percentage=0.8, # percentage of data into training, remaining into validation
+        train_percentage=0.3, # percentage of data into training, remaining into validation
         mini_batch_percentage=1,
         validation_type={'method': 'holdout'},
         #validation_type={'method': 'kfold', 'k': 5},
         # ---
-        lr_values = [0.4, 0.6, 0.8],
+        lr_values = [0.4],
         l2_values = [0],
-        momentum_values = [0, 0.1, 0.2, 0.5, 0.7],
-        hidden_layers_values = [[4]]
+        momentum_values = [0, 0.1, 0.2],
+        hidden_layers_values = [([('tanh',4)],'sigmoid')]
     )
 
     # Run the grid-search which returns a list of dictionaries each containing

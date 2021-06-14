@@ -11,12 +11,16 @@ def Sequential(conf):
     model["out_dimension"] = out_dimension
 
     # Generate the activation functions lambda from their names
-    hidden_activation_functions = [activation_function_from_name(name) for name in conf["hidden_layers_activations"]]
+    # ([('tanh',4)],'sigmoid')
+    hidden_activation_functions = [activation_function_from_name(name) for (name, _) in conf["hidden_layers"][0]]
+    hidden_activation_functions.append(activation_function_from_name(conf["hidden_layers"][1]))
 
-    model["layers"].append(Dense(in_dimension, conf["hidden_layers"][0], activation_func=hidden_activation_functions[0]))
-    for i in range(len(conf["hidden_layers"]) - 1):
-        model["layers"].append(Dense(conf["hidden_layers"][i], conf["hidden_layers"][i + 1], activation_func=hidden_activation_functions[i + 1]))
-    model["layers"].append(Dense(conf["hidden_layers"][-1], out_dimension, activation_func=hidden_activation_functions[-1]))
+    hidden_layers_sizes = [size for (_, size) in conf["hidden_layers"][0]]
+
+    model["layers"].append(Dense(in_dimension, hidden_layers_sizes[0], activation_func=hidden_activation_functions[0]))
+    for i in range(len(hidden_layers_sizes) - 1):
+        model["layers"].append(Dense(hidden_layers_sizes[i], hidden_layers_sizes[i + 1], activation_func=hidden_activation_functions[i + 1]))
+    model["layers"].append(Dense(hidden_layers_sizes[-1], out_dimension, activation_func=hidden_activation_functions[-1]))
 
     return model
 
