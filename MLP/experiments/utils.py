@@ -1,5 +1,18 @@
 import random
 import numpy as np
+from math import inf
+
+def argmin(f, v):
+    minimum = inf
+    minimum_i = -1
+    for (i, x) in enumerate(v):
+        xv = f(x)
+        if minimum > xv:
+            minimum = xv
+            minimum_i = i
+    if minimum_i == -1:
+        raise 'Empty list passed to argmin'
+    return minimum_i
 
 def set_seed(seed):
     random.seed(seed)
@@ -7,12 +20,17 @@ def set_seed(seed):
 
 # Splits the training set into a training set of size train_prop * 'original size'
 # and a validation set with the remaining data points.
-def split_train_set(training, train_prop):
-    assert training.shape[0] >= 2, 'Error while splitting the training set, make sure there are at least 2 items.'
+def split_train_set(dataset_unshuffled, train_prop):
+    assert dataset_unshuffled.shape[0] >= 2, 'Error while splitting the dataset_unshuffled set, make sure there are at least 2 items.'
     # Shuffle the data
-    dataset = np.random.permutation(training)
+    dataset = np.random.permutation(dataset_unshuffled)
 
-    # TODO: Is it correct to force at least 1 item into the sets?
+    train_size = int(train_prop * dataset)
+
+    train_set = dataset[:train_size][:]
+    val_set = dataset[train_size:][:]
+
+    """ # TODO: Is it correct to force at least 1 item into the sets?
     train_set = np.array([dataset[0]])
     val_set = np.array([dataset[1]])
 
@@ -20,7 +38,7 @@ def split_train_set(training, train_prop):
         if np.random.rand() <= train_prop:
             train_set = np.vstack([train_set, p])
         else:
-            val_set = np.vstack([val_set, p])
+            val_set = np.vstack([val_set, p]) """
 
     return (train_set, val_set)
 

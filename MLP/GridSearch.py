@@ -1,12 +1,13 @@
 from MLP.Validations import holdout, kfold
 from itertools import repeat
 from multiprocessing import Pool
-from MLP.experiments.utils import split_train_set
+from MLP.experiments.utils import split_train_set, argmin
 from MLP.LossFunctions import loss_function_from_name
 from MLP.Network import Sequential
-from math import inf
+from math import inf, ceil
 import os
 import time
+import numpy as np
 
 def generate_hyperparameters(
         loss_func: str = "Cross Entropy",
@@ -39,52 +40,59 @@ def generate_hyperparameters(
 
 
 def call_holdout(args):
-    start = time.time()
     conf, (train_set, val_set) = args
-    loss_func = loss_function_from_name(conf["loss_function"])
 
     #  How many times to repeat the training with the same configuration in order to reduce the validation error variance
     K = 3
-    best_results = {'val_error': inf, 'epochs': 0, 'train_errors': [], 'val_errors': [], 'train_accuracies': [], 'val_accuracies': []}
+    trials = []
+    best_val_error = inf
     for t in range(K):
-        model = Sequential(conf)
-
-        results = holdout(model, train_set, val_set, conf["target_domain"], loss_func, lr=conf["lr"], l2=conf["l2"], momentum=conf["momentum"], mini_batch_percentage=conf["mini_batch_percentage"], MAX_UNLUCKY_STEPS = 25, MAX_EPOCHS = 250)
-        # TODO: imo we should take an avg of the val error over the K runs otherwise it's all based on the lucky random init
-        #       and then we can plot the learning curves with the deviations..
-        if results['val_error'] < best_results['val_error']:
-            best_results = results
-
-    end = time.time()
-
-    print('Finished', str(os.getpid()), end-start, len(best_results["val_errors"]))
+        results = holdout(conf, train_set, val_set, conf["target_domain"],
+                          loss_function_from_name(conf["loss_function"]),
+                          lr=conf["lr"], l2=conf["l2"], momentum=conf["momentum"], mini_batch_percentage=conf["mini_batch_percentage"], MAX_UNLUCKY_STEPS = 25, MAX_EPOCHS = 250)
+        if results['val_error'] < best_val_error:
+            best_val_error = results['val_error']
+        trials.append(results)
  
-    return best_results
+    return {'val_error': best_val_error, 'trials': trials}
 
 
 def call_kfold(args):
 
-    print('Finished')
+    conf, (folded_dataset) = args
 
+    print('Validation started pid: ', str(os.getpid()))
 
-def run_holdout_grid_search(hyperparameters, training, n_workers=1):
+    return kfold(conf, folded_dataset,
+                 conf["target_domain"], loss_function_from_name(conf["loss_function"]),
+                 conf["lr"], conf["l2"], conf["momentum"],
+                 conf["mini_batch_percentage"], MAX_UNLUCKY_STEPS = 10, MAX_EPOCHS = 250)
+
+def run_holdout_grid_search(hyperparameters, training, n_workers):
     # Split the dataset into train and validation set.
     (train_set, val_set) = split_train_set(training, hyperparameters[0]['train_percentage'])
     with Pool(processes=n_workers) as pool:
         return pool.map(call_holdout, zip(hyperparameters, repeat((train_set, val_set))))
-    #return map(call_holdout, zip(hyperparameters, repeat((train_set, val_set))))
+    #return map(validation_wrapper(call_holdout), zip(hyperparameters, repeat((train_set, val_set))))
 
-
-def run_kfold_grid_search(hyperparameters, training, n_workers=1):
-    folded_dataset = 1 # TODO
+def run_kfold_grid_search(hyperparameters, training, n_workers):
+    def split_chunks(vals, k):
+        size = ceil(len(vals)/k) 
+        for i in range(0, len(vals), size):
+            yield vals[i:i + size][:]
+    folded_dataset = list(split_chunks(np.random.permutation(training), hyperparameters[0]['validation_type']['k']))
     with Pool(processes=n_workers) as pool:
         return pool.map(call_kfold, zip(hyperparameters, repeat((folded_dataset))))
 
-
 def grid_search(hyperparameters, training, n_workers=1):
     if hyperparameters[0]["validation_type"]["method"] == 'holdout':
-        return run_holdout_grid_search(hyperparameters, training, n_workers=1)
+        validation_results = run_holdout_grid_search(hyperparameters, training, n_workers)
     elif hyperparameters[0]["validation_type"]["method"] == 'kfold':
-        return run_kfold_grid_search(hyperparameters, training, n_workers=1)
+        validation_results = run_kfold_grid_search(hyperparameters, training, n_workers)
     else:
         raise ValueError(f'Unknown validation_type: {hyperparameters[0]["validation_type"]["method"]}')
+
+    # Find the best hyperparameters configuration
+    best_i = argmin(lambda c: c['val_error'], validation_results)
+
+    return hyperparameters[best_i], validation_results[best_i]

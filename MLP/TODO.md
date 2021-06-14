@@ -1,4 +1,3 @@
-- kfold
 - plot gradient norm
 - plot weights norm
 - predict_batch in MSE and Cross Entropy
