@@ -10,8 +10,8 @@ class MSE:
         e = 0.0
         # TODO: Create predict_batch to avoid this for-loop
         for pattern in dataset:
-            x = pattern[model["in_dimension"]:]
-            y = pattern[:model["in_dimension"]]
+            x = pattern[:model["in_dimension"]]
+            y = pattern[model["in_dimension"]:]
             e += np.sum((y - predict(model, x))**2)
         return e / (2 * x.shape[0])
 
@@ -34,11 +34,9 @@ class CrossEntropy:
     def eval(self, model, dataset):
         c = 0.0
         for pattern in dataset:
-            x = pattern[model["in_dimension"]:]
+            x = pattern[:model["in_dimension"]]
             a = predict(model, x)
-            # This can only be done if there is only *one* output value.
-            # This is the case of classification problems
-            y = pattern[:-1]
+            y = pattern[model["in_dimension"]:]
             c += np.sum(y * np.log(a) + (1 - y) * np.log(1 - a))
         return -1/dataset.shape[0] * c
 
@@ -61,8 +59,8 @@ def loss_function_from_name(name):
 def accuracy(model, dataset, target_domain=(-1, 1)) -> float:
     corrects = 0
     for i in range(dataset.shape[0]):
-        x = dataset[i][model["in_dimension"]:]
-        y = dataset[i][:model["in_dimension"]]
+        x = dataset[i][:model["in_dimension"]]
+        y = dataset[i][model["in_dimension"]:]
         if y == (target_domain[1] if predict(model, x) >= (target_domain[0] + target_domain[1])/2 else target_domain[0]):
             corrects += 1
     return corrects / dataset.shape[0]

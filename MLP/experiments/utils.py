@@ -7,25 +7,22 @@ def set_seed(seed):
 
 # Splits the training set into a training set of size train_prop * 'original size'
 # and a validation set with the remaining data points.
-def split_train_set(train_X, train_Y, train_prop):
-    assert train_X.shape[0] >= 2, 'Error while splitting the training set, make sure there are at least 2 items.'
-
-    dataset = np.column_stack((train_X, train_Y))
-    dataset = np.random.permutation(dataset)
+def split_train_set(training, train_prop):
+    assert training.shape[0] >= 2, 'Error while splitting the training set, make sure there are at least 2 items.'
+    # Shuffle the data
+    dataset = np.random.permutation(training)
 
     # TODO: Is it correct to force at least 1 item into the sets?
-    new_train_X, new_train_Y = np.array([dataset[0][:-1]]), np.array([dataset[0][-1]])
-    new_val_X, new_val_Y = np.array([dataset[1][:-1]]), np.array([dataset[1][-1]])
+    train_set = np.array([dataset[0]])
+    val_set = np.array([dataset[1]])
 
     for p in dataset[2:]:
         if np.random.rand() <= train_prop:
-            new_train_X = np.vstack([new_train_X, p[:-1]])
-            new_train_Y = np.vstack([new_train_Y, p[-1]])
+            train_set = np.vstack([train_set, p])
         else:
-            new_val_X = np.vstack([new_val_X, p[:-1]])
-            new_val_Y = np.vstack([new_val_Y, p[-1]])
+            val_set = np.vstack([val_set, p])
 
-    return (new_train_X, new_train_Y, new_val_X, new_val_Y)
+    return (train_set, val_set)
 
 # 'number' can be 1, 2 or 3
 # It returns the dataset splitted into training and test set.

@@ -1,7 +1,10 @@
 from MLP.Layers import Dense, forward
 from MLP.ActivationFunctions import activation_function_from_name
 
-def Sequential(conf, in_dimension, out_dimension):
+def Sequential(conf):
+    in_dimension = conf["in_dimension"]
+    out_dimension = conf["out_dimension"]
+
     model = {}
     model["layers"] = []
     model["in_dimension"] = in_dimension
@@ -27,8 +30,10 @@ def predict(model, x):
 def reset(old_model):
     model = {}
     model["layers"] = []
+    model["in_dimension"] = old_model["in_dimension"]
+    model["out_dimension"] = old_model["out_dimension"]
 
     for layer in old_model["layers"]:
-        model["layers"].append(Dense(layer["dimension_in"], layer["dimension_out"], layer["use_bias"], (layer["activation_func"], layer["activation_func_derivative"])))
+        model["layers"].append(Dense(layer["in_dimension"], layer["out_dimension"], layer["use_bias"], (layer["activation_func"], layer["activation_func_derivative"])))
 
     return model
