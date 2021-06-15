@@ -68,12 +68,14 @@ def call_kfold(args):
                  conf["lr"], conf["l2"], conf["momentum"],
                  conf["mini_batch_percentage"], MAX_UNLUCKY_STEPS = 10, MAX_EPOCHS = 250)
 
+
 def run_holdout_grid_search(hyperparameters, training, n_workers):
     # Split the dataset into train and validation set.
     (train_set, val_set) = split_train_set(training, hyperparameters[0]['train_percentage'])
     with Pool(processes=n_workers) as pool:
         return pool.map(call_holdout, zip(hyperparameters, repeat((train_set, val_set))))
     #return map(validation_wrapper(call_holdout), zip(hyperparameters, repeat((train_set, val_set))))
+
 
 def run_kfold_grid_search(hyperparameters, training, n_workers):
     def split_chunks(vals, k):
@@ -83,6 +85,7 @@ def run_kfold_grid_search(hyperparameters, training, n_workers):
     folded_dataset = list(split_chunks(np.random.permutation(training), hyperparameters[0]['validation_type']['k']))
     with Pool(processes=n_workers) as pool:
         return pool.map(call_kfold, zip(hyperparameters, repeat((folded_dataset))))
+
 
 def grid_search(hyperparameters, training, n_workers=1):
     if hyperparameters[0]["validation_type"]["method"] == 'holdout':

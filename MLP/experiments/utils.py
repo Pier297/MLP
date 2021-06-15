@@ -60,7 +60,6 @@ def _load_monk(file_name: str, target_domain=(-1, 1)):
             # ['1', '3', '3', '2', '3', '4', '2']
             line = [int(x) for x in line]
             # [1, 3, 3, 2, 3, 4, 2]
-            # TODO: If we use cross-entropy the output must be in [0;1]
             out = target_domain[1] if line[0] == 1 else target_domain[0]
             x1 = one_hot(line[1], 3)
             x2 = one_hot(line[2], 3)

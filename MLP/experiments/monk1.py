@@ -6,7 +6,6 @@ from MLP.GridSearch import generate_hyperparameters, grid_search
 from MLP.experiments.utils import load_monk, set_seed, argmin
 from multiprocessing import cpu_count
 import numpy as np
-from math import inf
 
 set_seed(2)
 
@@ -20,7 +19,7 @@ if __name__ == '__main__':
         in_dimension    = 17,
         out_dimension   = 1,
         target_domain = target_domain,
-        train_percentage=0.3, # percentage of data into training, remaining into validation
+        train_percentage=0.8, # percentage of data into training, remaining into validation
         mini_batch_percentage=1,
         #validation_type={'method': 'holdout'},
         validation_type={'method': 'kfold', 'k': 5},
@@ -45,7 +44,7 @@ if __name__ == '__main__':
     (train_errors, train_accuracies, val_errors, val_accuracies) = Gradient_descent(model, training, np.array([]), loss_function=loss_function_from_name(best_hyperparameters['loss_function']), lr=best_hyperparameters["lr"], l2=best_hyperparameters["l2"], momentum=best_hyperparameters["momentum"], train_percentage=best_hyperparameters["train_percentage"], MAX_EPOCHS=best_results["trials"][best_i]["epochs"], target_domain=target_domain)
 
     print("\nTrain accuracy =", accuracy(model, training, target_domain))
-    print("Test accuracy =", accuracy(model, test, target_domain))
+    #print("Test accuracy =", accuracy(model, test, target_domain))
 
     print("\n", best_hyperparameters)
     plot_learning_curves(best_results['trials'], name=best_hyperparameters['loss_function'], highlight_best=True)

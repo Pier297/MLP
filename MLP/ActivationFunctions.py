@@ -9,6 +9,7 @@ def Sigmoid():
     der = lambda x: sigm(x) * (1 - sigm(x))
     return (sigm, der)
 
+
 def activation_function_from_name(name):
     if name == 'tanh':
         return Tanh()

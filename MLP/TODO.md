@@ -1,3 +1,4 @@
+- Save plots under correct folder 'results/monk'
 - plot gradient norm
 - plot weights norm
 - predict_batch in MSE and Cross Entropy

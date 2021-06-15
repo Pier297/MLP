@@ -10,6 +10,7 @@ def print_epoch_stats(loss_func, model, t, training, validation):
         msg = ''
     print(f'Epoch {t+1} | Train {loss_func.name} = {loss_func.eval(model, training)}' + msg)
 
+
 # Returns (train_errors, val_errors, train_accuracies, val_accuracies)
 def Gradient_descent(model, training, validation, loss_function, lr: float, l2: float, momentum: float, train_percentage: int = 1.0, MAX_EPOCHS: int = 100, target_domain=(-1, 1)):
     train_errors = [loss_function.eval(model, training)]

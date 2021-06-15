@@ -21,7 +21,7 @@ def kfold(conf, folded_dataset, target_domain, loss_func, lr, l2, momentum, mini
     history = []
     for i in range(len(folded_dataset)):
         validation = folded_dataset[i]
-        
+        # TODO: Find way to directly do this with numpy methods
         training = np.ndarray((1, 18))
         for j, fold in enumerate(folded_dataset):
             if j != i:
