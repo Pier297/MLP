@@ -66,7 +66,7 @@ def call_kfold(args):
     return kfold(conf, folded_dataset,
                  conf["target_domain"], loss_function_from_name(conf["loss_function"]),
                  conf["lr"], conf["l2"], conf["momentum"],
-                 conf["mini_batch_percentage"], MAX_UNLUCKY_STEPS = 10, MAX_EPOCHS = 250)
+                 conf["mini_batch_percentage"], MAX_UNLUCKY_STEPS = 25, MAX_EPOCHS = 250)
 
 
 def run_holdout_grid_search(hyperparameters, training, n_workers):
