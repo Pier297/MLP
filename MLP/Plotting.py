@@ -46,7 +46,7 @@ def plot_model(train, vals, label1, label2, *args, **kwargs):
     if vals != []:
         plt.plot(vals, label=label2, color='orange', *args, **kwargs)
 
-def plot_learning_curves(trials, highlight_best=True, name='MSE', show=False):
+def plot_learning_curves(trials, highlight_best=True, name='MSE', show=False, file_name=''):
     plt.figure()
     
     best_i = find_best(trials) if highlight_best else -1
@@ -54,19 +54,20 @@ def plot_learning_curves(trials, highlight_best=True, name='MSE', show=False):
     for i, results in enumerate(trials):
         plot_model(results['train_errors'], results['val_errors'],
                    'Training error' if i == best_i else '', 'Validation error' if i == best_i else '',
-                   alpha=1.0 if i == best_i else 0.2)
+                   alpha=1.0 if i == best_i else 0.1)
         
     plt.legend()
     plt.title(name)
     plt.xlabel('iteration')
     plt.ylabel('errors')
     plt.draw()
+    if file_name != '':
+        plt.savefig(file_name)
     if show:
         plt.show()
-    plt.savefig('learning_curves.png')
 
 
-def plot_accuracies(trials, highlight_best=True, name='Accuracy', show=True):
+def plot_accuracies(trials, highlight_best=True, name='Accuracy', show=True, file_name=''):
     plt.figure()
     
     best_i = find_best(trials) if highlight_best else -1
@@ -74,13 +75,14 @@ def plot_accuracies(trials, highlight_best=True, name='Accuracy', show=True):
     for i, results in enumerate(trials):
         plot_model(results['train_accuracies'], results['val_accuracies'],
                    'Train accuracy' if i == best_i else '', 'Validation accuracy' if i == best_i else '',
-                   alpha=1.0 if i == best_i else 0.2)
+                   alpha=1.0 if i == best_i else 0.1)
     
     plt.legend()
     plt.title(name)
     plt.xlabel('iteration')
     plt.ylabel('accuracies')
     plt.draw()
+    if file_name != '':
+        plt.savefig(file_name)
     if show:
         plt.show()
-    plt.savefig('accuracies.png')

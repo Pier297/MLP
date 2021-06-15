@@ -35,7 +35,21 @@ def early_stopping(model, training, validation, target_domain, loss_function, lr
         for i in range(0, ceil(dataset.shape[0] / batch_size)):
             mini_batch = dataset[i * batch_size:(i * batch_size) + batch_size][:]
             # Perform a gradient descent update on the mini-batch
-            gradient_descent_step(model, mini_batch, loss_function, lr, l2, momentum, prev_delta_W, prev_delta_b)
+            try:
+                gradient_descent_step(model, mini_batch, loss_function, lr, l2, momentum, prev_delta_W, prev_delta_b)
+            except RuntimeWarning as error:
+                print('-------------------------------------------------')
+                print(t, momentum)
+                print(lr)
+                print(l2)
+                print(error)
+            except:
+                print('-------------------------------------------------')
+                print('second')
+                print(t, momentum)
+                print(lr)
+                print(l2)
+
 
         # Early stopping logic
         current_val_error = loss_function.eval(model, validation)
@@ -47,9 +61,23 @@ def early_stopping(model, training, validation, target_domain, loss_function, lr
             break
         else:
             unlucky_epochs += 1
+        try:
+            train_errors.append(loss_function.eval(model, training))
+            train_accuracies.append(accuracy(model, training, target_domain=target_domain))
+            val_errors.append(current_val_error)
+            val_accuracies.append(accuracy(model, validation, target_domain=target_domain))
+        except RuntimeWarning as error:
+            print('second')
+            print('-------------------------------------------------')
+            print(t, momentum)
+            print(lr)
+            print(l2)
+            print(error)
+        except:
+            print('second')
+            print('-------------------------------------------------')
+            print(t, momentum)
+            print(lr)
+            print(l2)
 
-        train_errors.append(loss_function.eval(model, training))
-        train_accuracies.append(accuracy(model, training, target_domain=target_domain))
-        val_errors.append(current_val_error)
-        val_accuracies.append(accuracy(model, validation, target_domain=target_domain))
     return (train_errors, train_accuracies, val_errors, val_accuracies, best_epoch)

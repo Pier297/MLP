@@ -1,3 +1,4 @@
+import numpy as np
 from MLP.Layers import Dense, forward
 from MLP.ActivationFunctions import activation_function_from_name
 
@@ -6,6 +7,7 @@ def Sequential(conf):
     out_dimension = conf["out_dimension"]
 
     model = {}
+    model["seed"] = conf["seed"]
     model["layers"] = []
     model["in_dimension"] = in_dimension
     model["out_dimension"] = out_dimension
@@ -16,6 +18,8 @@ def Sequential(conf):
     hidden_activation_functions.append(activation_function_from_name(conf["hidden_layers"][1]))
 
     hidden_layers_sizes = [size for (_, size) in conf["hidden_layers"][0]]
+
+    np.random.seed(model["seed"])
 
     model["layers"].append(Dense(in_dimension, hidden_layers_sizes[0], activation_func=hidden_activation_functions[0]))
     for i in range(len(hidden_layers_sizes) - 1):

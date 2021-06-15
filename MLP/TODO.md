@@ -1,9 +1,8 @@
-- Save plots under correct folder 'results/monk'
 - plot gradient norm
 - plot weights norm
 - predict_batch in MSE and Cross Entropy
 - learning rate decay
-- model selection --> grid search & random search
+- random search
 - batch normalization?
 - adam
-- dropout & relu layer
+<!-- dropout & relu layer->

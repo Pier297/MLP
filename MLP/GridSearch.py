@@ -8,6 +8,7 @@ from math import inf, ceil
 import os
 import time
 import numpy as np
+import sys
 
 def generate_hyperparameters(
         loss_func: str = "Cross Entropy",
@@ -35,9 +36,9 @@ def generate_hyperparameters(
                                            "lr": lr, "l2": l2, "momentum": momentum,
                                            "hidden_layers": hidden_layers,
                                            "train_percentage": train_percentage,
-                                           "mini_batch_percentage": mini_batch_percentage})
+                                           "mini_batch_percentage": mini_batch_percentage,
+                                           "seed":np.random.randint(2**31-1)})
     return configurations
-
 
 def call_holdout(args):
     conf, (train_set, val_set) = args
@@ -49,7 +50,7 @@ def call_holdout(args):
     for t in range(K):
         results = holdout(conf, train_set, val_set, conf["target_domain"],
                           loss_function_from_name(conf["loss_function"]),
-                          lr=conf["lr"], l2=conf["l2"], momentum=conf["momentum"], mini_batch_percentage=conf["mini_batch_percentage"], MAX_UNLUCKY_STEPS = 25, MAX_EPOCHS = 250)
+                          lr=conf["lr"], l2=conf["l2"], momentum=conf["momentum"], mini_batch_percentage=conf["mini_batch_percentage"], MAX_UNLUCKY_STEPS = 50, MAX_EPOCHS = 500)
         if results['val_error'] < best_val_error:
             best_val_error = results['val_error']
         trials.append(results)
@@ -60,13 +61,15 @@ def call_holdout(args):
 def call_kfold(args):
 
     conf, (folded_dataset) = args
+    print('======== Validation started pid: ', str(os.getpid()))
+    print(conf)
 
-    print('Validation started pid: ', str(os.getpid()))
-
-    return kfold(conf, folded_dataset,
+    results = kfold(conf, folded_dataset,
                  conf["target_domain"], loss_function_from_name(conf["loss_function"]),
                  conf["lr"], conf["l2"], conf["momentum"],
-                 conf["mini_batch_percentage"], MAX_UNLUCKY_STEPS = 25, MAX_EPOCHS = 250)
+                 conf["mini_batch_percentage"], MAX_UNLUCKY_STEPS = 50, MAX_EPOCHS = 500)
+
+    return results
 
 
 def run_holdout_grid_search(hyperparameters, training, n_workers):
@@ -74,7 +77,6 @@ def run_holdout_grid_search(hyperparameters, training, n_workers):
     (train_set, val_set) = split_train_set(training, hyperparameters[0]['train_percentage'])
     with Pool(processes=n_workers) as pool:
         return pool.map(call_holdout, zip(hyperparameters, repeat((train_set, val_set))))
-    #return map(validation_wrapper(call_holdout), zip(hyperparameters, repeat((train_set, val_set))))
 
 
 def run_kfold_grid_search(hyperparameters, training, n_workers):
