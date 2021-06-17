@@ -18,30 +18,6 @@ def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
 
-# Splits the training set into a training set of size train_prop * 'original size'
-# and a validation set with the remaining data points.
-def split_train_set(dataset_unshuffled, train_prop):
-    assert dataset_unshuffled.shape[0] >= 2, 'Error while splitting the dataset_unshuffled set, make sure there are at least 2 items.'
-    # Shuffle the data
-    dataset = np.random.permutation(dataset_unshuffled)
-
-    train_size = int(train_prop * dataset)
-
-    train_set = dataset[:train_size][:]
-    val_set = dataset[train_size:][:]
-
-    """ # TODO: Is it correct to force at least 1 item into the sets?
-    train_set = np.array([dataset[0]])
-    val_set = np.array([dataset[1]])
-
-    for p in dataset[2:]:
-        if np.random.rand() <= train_prop:
-            train_set = np.vstack([train_set, p])
-        else:
-            val_set = np.vstack([val_set, p]) """
-
-    return (train_set, val_set)
-
 # 'number' can be 1, 2 or 3
 # It returns the dataset splitted into training and test set.
 # Already handling the one-hot representation

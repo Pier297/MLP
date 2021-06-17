@@ -1,18 +1,37 @@
 from math import ceil
 import numpy as np
-from MLP.LossFunctions import accuracy, MSE, CrossEntropy
+from MLP.LossFunctions import loss_function_from_name, accuracy, MSE, CrossEntropy
 from MLP.Layers import forward, net
+from math import inf
 
-def print_epoch_stats(loss_func, model, t, training, validation):
+def print_epoch_stats(loss_function, model, t, training, validation):
     if validation.shape[0] > 0:
-        msg = f'| Validation {loss_func.name} = {loss_func.eval(model, validation)}'
+        msg = f' | Validation {loss_function.name} = {loss_function.eval(model, validation)}'
     else:
         msg = ''
-    print(f'Epoch {t+1} | Train {loss_func.name} = {loss_func.eval(model, training)}' + msg)
+    print(f'Epoch {t+1} | Train {loss_function.name} = {loss_function.eval(model, training)}' + msg)
 
-
+# Early stopping:
+# The function works by applying gradient descent onto the training set,
+# and each epoch it checks the error on the validation set to see if it
+# improved. In case it got better we save the current configuration (epochs, ..),
+# otherwise we keep trying for a 'max_unlucky_epochs'. If after
+# 'max_unlucky_epochs' the validation error hasn't reached a new minima, we return
+# the model trained on the best configuration found on the union of the
+# training and validation set.
 # Returns (train_errors, val_errors, train_accuracies, val_accuracies)
-def Gradient_descent(model, training, validation, loss_function, lr: float, l2: float, momentum: float, train_percentage: int = 1.0, MAX_EPOCHS: int = 100, target_domain=(-1, 1)):
+def gradient_descent(model, training, validation, config):
+
+    target_domain         = config['target_domain']
+    loss_function         = loss_function_from_name(config['loss_function_name'])
+    lr                    = config['lr']
+    l2                    = config['l2']
+    momentum              = config['momentum']
+    mini_batch_percentage = config['mini_batch_percentage']
+    max_unlucky_epochs    = config['max_unlucky_epochs']
+    max_epochs            = config['max_epochs']
+    print_stats           = config['print_stats']
+
     train_errors = [loss_function.eval(model, training)]
     train_accuracies = [accuracy(model, training, target_domain=target_domain)]
     if validation.shape[0] > 0:
@@ -26,9 +45,13 @@ def Gradient_descent(model, training, validation, loss_function, lr: float, l2: 
     prev_delta_W = [np.zeros(layer["W"].shape) for layer in model["layers"]]
     prev_delta_b = [np.zeros(layer["b"].shape) for layer in model["layers"]]
 
-    batch_size = int(training.shape[0] * train_percentage)
+    unlucky_epochs = 0
+    best_epoch = 0
+    best_val_error = inf
 
-    for t in range(MAX_EPOCHS):
+    batch_size = int(mini_batch_percentage * training.shape[0])
+
+    for t in range(max_epochs):
         # Shuffle the training data
         # TODO: Sample the mini-batches correctly? This sampling is not i.i.d.
         dataset = np.random.permutation(training)
@@ -38,13 +61,34 @@ def Gradient_descent(model, training, validation, loss_function, lr: float, l2: 
             # Perform a gradient descent update on the mini-batch
             gradient_descent_step(model, mini_batch, loss_function, lr, l2, momentum, prev_delta_W, prev_delta_b)
 
-        train_errors.append(loss_function.eval(model, training))
+        # Early stopping logic
+        if validation.shape[0] > 0:
+            current_val_error = loss_function.eval(model, validation, t)
+
+            if current_val_error < best_val_error:
+                best_val_error = current_val_error
+                best_epoch = t
+                unlucky_epochs = 0
+            elif unlucky_epochs == max_unlucky_epochs:
+                break
+            else:
+                unlucky_epochs += 1
+
+        train_errors.append(loss_function.eval(model, training, t))
         train_accuracies.append(accuracy(model, training, target_domain=target_domain))
         if validation.shape[0] > 0:
-            val_errors.append(loss_function.eval(model, validation))
+            val_errors.append(loss_function.eval(model, validation, t))
             val_accuracies.append(accuracy(model, validation, target_domain=target_domain))
-        print_epoch_stats(loss_function, model, t, training, validation)
-    return (train_errors, train_accuracies, val_errors, val_accuracies)
+        
+        if print_stats:
+            print_epoch_stats(loss_function, model, t, training, validation)
+        
+    return {'val_error':        val_errors[best_epoch] if validation.shape[0] > 0 else None,
+            'best_epoch':       best_epoch,
+            'train_errors':     train_errors,
+            'val_errors':       val_errors,
+            'train_accuracies': train_accuracies,
+            'val_accuracies':   val_accuracies}
 
 
 def gradient_descent_step(model, mini_batch, loss_function, lr, l2, momentum, prev_delta_W, prev_delta_b):

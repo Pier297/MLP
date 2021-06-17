@@ -1,4 +1,3 @@
-from MLP.Regularizers import early_stopping
 import matplotlib.pyplot as plt
 import numpy as np
 from MLP.experiments.utils import argmin

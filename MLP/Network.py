@@ -2,15 +2,17 @@ import numpy as np
 from MLP.Layers import Dense, forward
 from MLP.ActivationFunctions import activation_function_from_name
 
-def Sequential(conf):
+def Sequential(conf, change_seed=False):
     in_dimension = conf["in_dimension"]
     out_dimension = conf["out_dimension"]
 
     model = {}
-    model["seed"] = conf["seed"]
+    model["seed"] = np.random.randint(2**31-1) if change_seed else conf["seed"]
     model["layers"] = []
     model["in_dimension"] = in_dimension
     model["out_dimension"] = out_dimension
+
+    np.random.seed(model["seed"])
 
     # Generate the activation functions lambda from their names
     # ([('tanh',4)],'sigmoid')
@@ -19,15 +21,12 @@ def Sequential(conf):
 
     hidden_layers_sizes = [size for (_, size) in conf["hidden_layers"][0]]
 
-    np.random.seed(model["seed"])
-
     model["layers"].append(Dense(in_dimension, hidden_layers_sizes[0], activation_func=hidden_activation_functions[0]))
     for i in range(len(hidden_layers_sizes) - 1):
         model["layers"].append(Dense(hidden_layers_sizes[i], hidden_layers_sizes[i + 1], activation_func=hidden_activation_functions[i + 1]))
     model["layers"].append(Dense(hidden_layers_sizes[-1], out_dimension, activation_func=hidden_activation_functions[-1]))
 
     return model
-
 
 def predict(model, x):
     for layer in model["layers"]:

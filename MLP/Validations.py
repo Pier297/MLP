@@ -1,31 +1,37 @@
 from MLP.Network import Sequential
 from MLP.LossFunctions import loss_function_from_name
-from MLP.Regularizers import early_stopping
+from MLP.Optimizers import gradient_descent
 from math import inf
 from MLP.Network import reset
 import numpy as np
 
-def holdout(conf, training, validation, target_domain, loss_func, lr, l2, momentum, mini_batch_percentage=1.0, MAX_UNLUCKY_STEPS = 10, MAX_EPOCHS = 250):
-    model = Sequential(conf)
-    
-    train_errors, train_accuracies, val_errors, val_accuracies, early_best_epoch = early_stopping(model, training, validation, target_domain, loss_func, lr, l2, momentum, mini_batch_percentage, MAX_UNLUCKY_STEPS, MAX_EPOCHS)
-    
-    current_val_error = val_errors[early_best_epoch-1]
-    results = {'val_error': current_val_error, 'epochs': early_best_epoch, 'train_errors': train_errors, 'val_errors': val_errors, 'train_accuracies': train_accuracies, 'val_accuracies': val_accuracies}
- 
-    return results
+def holdout_hyperconfiguration(conf, training, validation, number_trials=3):
+    trials = []
+    best_val_error = inf
+    best_trial = None
+    for t in range(number_trials):
+        model = Sequential(conf, change_seed=True)
+        #  How many times to repeat the training with the same configuration in order to reduce the validation error variance
+        results = gradient_descent(model, training, validation, conf)
+        if results['val_error'] < best_val_error:
+            best_val_error = results['val_error']
+            best_trial = results
+            trials.append(results)
+    return {'val_error': best_val_error, 'trials': trials, 'best_trial': best_trial}
 
+def kfold_hyperconfiguration(conf, folded_dataset):
+    average_val_error = 0.0
+    trials = []
 
-def kfold(conf, folded_dataset, target_domain, loss_func, lr, l2, momentum, mini_batch_percentage=1.0, MAX_UNLUCKY_STEPS = 10, MAX_EPOCHS = 250):
-    e = 0.0
-    history = []
     for i in range(len(folded_dataset)):
+        model = Sequential(conf, change_seed=True)
+
         validation = folded_dataset[i]
         training_list = folded_dataset[:i] + folded_dataset[i + 1:]
         training = np.concatenate(training_list)
-        
-        results = holdout(conf, training, validation, target_domain, loss_func, lr, l2, momentum, mini_batch_percentage, MAX_UNLUCKY_STEPS, MAX_EPOCHS)
-        history.append(results)
-        e += results["val_error"]
 
-    return {'val_error': e / len(folded_dataset), 'trials': history}
+        results = gradient_descent(model, training, validation, conf)
+        trials.append(results)
+        average_val_error += results["val_error"]
+
+    return {'val_error': average_val_error / len(folded_dataset), 'trials': trials}

@@ -27,25 +27,25 @@ class MSE:
         return last_layer_output - target
 
 
+EPSILON = 1e-9
+
 class CrossEntropy:
     def __init__(self):
         self.name = 'Cross Entropy'
 
-    def eval(self, model, dataset):
+    def eval(self, model, dataset, epoch=-1):
         c = 0.0
         for pattern in dataset:
             x = pattern[:model["in_dimension"]]
             a = predict(model, x)
             y = pattern[model["in_dimension"]:]
-            c += np.sum(y * np.log(a) + (1 - y) * np.log(1 - a))
+            c += np.sum(y * np.log(a + EPSILON) + (1 - y) * np.log(1 - a + EPSILON))
         return -1/dataset.shape[0] * c
 
     def gradient(self, last_layer_output, target):
         y = target
         o = last_layer_output
-        # TODO: Possible division by zero because of o-1
-        return (y - 1) / (o - 1) - y/o
-
+        return (y - 1) / ((o - 1) + EPSILON) - y/(o + EPSILON)
 
 def loss_function_from_name(name):
     if name == 'Cross Entropy':
