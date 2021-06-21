@@ -28,17 +28,20 @@ def Sequential(conf, change_seed=False):
 
     return model
 
-def predict(model, x):
+def model_predict(model, x):
     for layer in model["layers"]:
         x = forward(layer, x)
     return x
 
+def model_predict_batch(model, inputs):
+    return np.reshape(np.array([model_predict(model, x) for x in inputs]), (inputs.shape[0], model["out_dimension"]))
 
 def reset(old_model):
     model = {}
     model["layers"] = []
     model["in_dimension"] = old_model["in_dimension"]
     model["out_dimension"] = old_model["out_dimension"]
+    model["seed"] = old_model["seed"] # TODO: Maybe we want a new random seed?
 
     for layer in old_model["layers"]:
         model["layers"].append(Dense(layer["in_dimension"], layer["out_dimension"], layer["use_bias"], (layer["activation_func"], layer["activation_func_derivative"])))

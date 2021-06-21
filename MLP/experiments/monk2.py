@@ -1,5 +1,5 @@
 from MLP.Network import Sequential
-from MLP.Optimizers import gradient_descent
+from MLP.GradientDescent import gradient_descent
 from MLP.Plotting import plot_learning_curves, plot_accuracies
 from MLP.LossFunctions import accuracy, loss_function_from_name
 from MLP.GridSearch import generate_hyperparameters, grid_search

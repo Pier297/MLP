@@ -1,11 +1,6 @@
-- after the model selection we define a new model with the best_hyperparameter conf. but it uses the same seed..
-- Fix problem with monk1 cross entropy and high momentum
-- plot gradient norm
-- plot weights norm
 - predict_batch in MSE and Cross Entropy
 - learning rate decay
+- analyze different random init for the weights
 - random search
 - NAG
-- adam
-- batch normalization?
-<!-- dropout & relu layer->
+- ensemble

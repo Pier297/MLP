@@ -7,42 +7,23 @@ from MLP.Network import Sequential
 from math import ceil
 import numpy as np
 
-def generate_hyperparameters(
-        loss_function_name: str = "Cross Entropy",
-        in_dimension    = 17,
-        out_dimension   = 1,
-        target_domain = (0, 1),
-        validation_percentage=0.2,
-        mini_batch_percentage=1.0,
-        max_unlucky_epochs=10,
-        max_epochs=250,
-        validation_type = {'method': 'holdout'},
-        lr_values = [0.4],
-        l2_values = [0],
-        momentum_values = [0],
-        hidden_layers_values = [([('tanh',4)],'sigmoid')]
-    ):
-    configurations = []
-    for lr in lr_values:
-        for l2 in l2_values:
-            for momentum in momentum_values:
-                for hidden_layers in hidden_layers_values:
-                    configurations.append({"in_dimension":          in_dimension,
-                                           "out_dimension":         out_dimension,
-                                           "target_domain":         target_domain,
-                                           "validation_type":       validation_type,
-                                           "loss_function_name":    loss_function_name,
-                                           "lr":                    lr,
-                                           "l2":                    l2,
-                                           "momentum":              momentum,
-                                           "hidden_layers":         hidden_layers,
-                                           "validation_percentage": validation_percentage,
-                                           "mini_batch_percentage": mini_batch_percentage,
-                                           "max_unlucky_epochs":    max_unlucky_epochs,
-                                           "max_epochs":            max_epochs,
-                                           "seed":                  np.random.randint(2**31-1),
-                                           "print_stats":           False})
-    return configurations
+def add_seeds(ds):
+    return [{**d, "seed": np.random.randint(2**31-1)} for d in ds]
+
+def generate_hyperparameters(**params):
+    results = [{}]
+    def cartesian_product(k, vs, ds):
+        for v in vs:
+            for d in ds:
+                yield {**d, k: v}
+
+    for k, v in params.items():
+        if type(v) is list:
+            results = list(cartesian_product(k, v, results))
+        else:
+            results = list(cartesian_product(k, [v], results))
+
+    return add_seeds(results)
 
 def call_holdout(args):
     i, (conf, (train_set, val_set)) = args

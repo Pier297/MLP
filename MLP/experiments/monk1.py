@@ -1,14 +1,14 @@
-from MLP.Network import Sequential, reset
-from MLP.Optimizers import gradient_descent
-from MLP.Plotting import plot_learning_curves, plot_accuracies
-from MLP.LossFunctions import accuracy, loss_function_from_name
+from MLP.Network import Sequential, model_predict_batch
+from MLP.GradientDescent import gradient_descent
+from MLP.Plotting import *
+from MLP.LossFunctions import accuracy
 from MLP.GridSearch import generate_hyperparameters, grid_search
-from MLP.experiments.utils import load_monk, set_seed, argmin
+from MLP.experiments.utils import load_monk, argmin
 from multiprocessing import cpu_count
 import numpy as np
 import random
 
-global_seed = 22
+global_seed = 1 # (22 is unlucky)
 random.seed(global_seed)
 np.random.seed(global_seed)
 
@@ -18,27 +18,32 @@ if __name__ == '__main__':
 
     (training, test) = load_monk(1, target_domain)
 
-    hyperparameters = generate_hyperparameters(
-        loss_function_name        = "Cross Entropy",
-        in_dimension     = 17,
-        out_dimension    = 1,
-        target_domain    = target_domain,
-        validation_percentage = 0.2, # percentage of data into validation, remaining into training
-        
-        mini_batch_percentage=1.0,
-        max_unlucky_epochs=50,
-        max_epochs=500,
-        #validation_type={'method': 'holdout'},
-        validation_type={'method': 'kfold', 'k': 5},
         # ---
         #lr_values = [0.1, 0.2, 0.4, 0.6],
         #l2_values = [0, 1e-5, 1e-3],
         #momentum_values = [0, 0.1, 0.2, 0.6, 0.9],
         #hidden_layers_values = [([('tanh',3)],'sigmoid'), ([('tanh',4)],'sigmoid')]
-        lr_values = [0.1, 0.2, 0.6],
-        l2_values = [0, 1e-3],
-        momentum_values = [0],
-        hidden_layers_values = [([('tanh',3)],'sigmoid')],
+        # ---
+
+    hyperparameters = generate_hyperparameters(
+        loss_function_name     = "Cross Entropy",
+        optimizer              = "adam", #optimizer = "SGD",
+        in_dimension           = 17,
+        out_dimension          = 1,
+        target_domain          = target_domain,
+        validation_percentage  = 0.2, # percentage of data into validation, remaining into training
+        mini_batch_percentage  = 1.0,
+        max_unlucky_epochs     = 50,
+        max_epochs             = 500,
+        validation_type        = {'method': 'kfold', 'k': 5}, # validation_type={'method': 'holdout'},
+        
+        lr                     = [0.01], # 0.6
+        l2                     = [0],
+        momentum               = [0.3],
+        decay_rate_1           = [0.8],
+        decay_rate_2           = [0.99],
+        hidden_layers          = [([('tanh',3)],'sigmoid')],
+        print_stats            = False
     )
     
     # seed 2
@@ -61,15 +66,37 @@ if __name__ == '__main__':
     # --- Retraining: define a new model with the best conf. and train on all the data ---
     model = Sequential(best_hyperparameters, change_seed=True)
     
-    best_hyperparameters["max_epochs"] = best_results["trials"][best_i]["best_epoch"] + 1
-    best_hyperparameters["print_stats"] = True
+    final_results = gradient_descent(model, training, None, 
+                                     {**best_hyperparameters,
+                                      'max_epochs': best_results["trials"][best_i]["best_epoch"] + 1,
+                                      'print_stats': True},
+                                     watching=test)
 
-    gdr = gradient_descent(model, training, np.array([]), best_hyperparameters)
-    (train_errors, train_accuracies, val_errors, val_accuracies) = (gdr['train_errors'], gdr['train_accuracies'], gdr['val_errors'], gdr['val_accuracies'])
+    train_input  = training[:, :model["in_dimension"]]
+    train_target = training[:, model["in_dimension"]:]
+    test_input   = test[:, :model["in_dimension"]]
+    test_target  = test[:, model["in_dimension"]:]
 
-    print("\nTrain accuracy =", accuracy(model, training, target_domain))
-    print("Test accuracy =", accuracy(model, test, target_domain))
+    train_output = model_predict_batch(model, train_input)
+    test_output  = model_predict_batch(model, test_input)
+
+    print("\nTrain accuracy =", accuracy(train_output, train_target, target_domain))
+    print("Test accuracy =",    accuracy(test_output, test_target, target_domain))
 
     print("\n", best_hyperparameters)
-    plot_learning_curves(best_results['trials'], name=best_hyperparameters['loss_function_name'], highlight_best=True, file_name='MLP/experiments/results/monk1/errors.png')
-    plot_accuracies(best_results['trials'], highlight_best=True, show=True, file_name='MLP/experiments/results/monk1/accuracies.png')
+
+    """ # Plot the weights and gradient norm during the best trial of the best hyperparameter
+    plot_final_results['weights_norm'](best_results["trials"][best_i]["final_results['weights_norm']"], title='Weights norm during model selection')
+    plot_final_results['gradient_norms'](best_results["trials"][best_i]["final_results['gradient_norms']"], title='Gradient norm during model selection')
+
+    # Plot the weights and gradient norm during the final training
+    plot_final_results['weights_norm'](final_results['weights_norm'], title='Weights norm during final training')
+    plot_final_results['gradient_norms'](final_results['gradient_norms'], title='Gradient norm during final training') """
+
+    # Plot the learning curves during the training of the best hyperparameter conf.
+    plot_model_selection_learning_curves(best_results['trials'], name=best_hyperparameters['loss_function_name'], highlight_best=True, file_name='MLP/experiments/results/monk1/model_selection_errors.png')
+    plot_model_selection_accuracies(best_results['trials'], highlight_best=True, file_name='MLP/experiments/results/monk1/model_selection_accuracies.png')
+
+    # Plot the final learning curve while training on all the data
+    plot_final_training_with_test_error     (final_results['train_errors'],     final_results['watch_errors'],     name=best_hyperparameters['loss_function_name'], file_name='MLP/experiments/results/monk1/final_errors.png')
+    plot_final_training_with_test_accuracies(final_results['train_accuracies'], final_results['watch_accuracies'], show=True, file_name='MLP/experiments/results/monk1/final_accuracies.png')
