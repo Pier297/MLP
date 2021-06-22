@@ -28,13 +28,13 @@ def Sequential(conf, change_seed=False):
 
     return model
 
-def model_predict(model, x):
+def model_predict_single(model, x):
     for layer in model["layers"]:
         x = forward(layer, x)
     return x
 
-def model_predict_batch(model, inputs):
-    return np.reshape(np.array([model_predict(model, x) for x in inputs]), (inputs.shape[0], model["out_dimension"]))
+def model_predict(model, inputs):
+    return np.reshape(np.array([model_predict_single(model, x) for x in inputs]), (inputs.shape[0], model["out_dimension"]))
 
 def reset(old_model):
     model = {}

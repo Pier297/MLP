@@ -5,6 +5,7 @@ from MLP.experiments.utils import argmin
 from MLP.LossFunctions import loss_function_from_name
 from MLP.Network import Sequential
 from math import ceil
+import time
 import numpy as np
 
 def add_seeds(ds):
@@ -27,8 +28,10 @@ def generate_hyperparameters(**params):
 
 def call_holdout(args):
     i, (conf, (train_set, val_set)) = args
+    before = time.perf_counter()
     results = holdout_hyperconfiguration(conf, train_set, val_set)
-    print(f"Holdout finished ({i}, val_error: {results['val_error']})")
+    after = time.perf_counter()
+    print(f"Holdout finished ({i}, val_error: {results['val_error']}), time (s): {after-before}")
     return results
 
 def holdout_grid_search(hyperparameters, training, n_workers):
@@ -48,13 +51,15 @@ def holdout_grid_search(hyperparameters, training, n_workers):
 
 def call_kfold(args):
     i, (conf, (folded_dataset)) = args
+    before = time.perf_counter()
     results = kfold_hyperconfiguration(conf, folded_dataset)
-    print(f"K-fold finished ({i}, val_error: {results['val_error']})")
+    after = time.perf_counter()
+    print(f"K-fold finished ({i}, val_error: {results['val_error']}), time (s): {after-before}")
     return results
 
 def kfold_grid_search(hyperparameters, training, n_workers):
     def split_chunks(vals, k):
-        size = ceil(len(vals)/k) 
+        size = ceil(len(vals)/k)
         for i in range(0, len(vals), size):
             yield vals[i:i + size][:]
 

@@ -6,7 +6,7 @@ def Dense(in_dimension: int, out_dimension: int, use_bias=True, activation_func=
     layer = {}
     init = sqrt(6/(out_dimension + in_dimension))
     layer["W"] = np.random.uniform(low=-init/2, high=init/2, size=(out_dimension, in_dimension))
-    
+
     """ if use_bias:
         layer["b"] = np.random.uniform(low=-init/2, high=init/2, size=(out_dimension, 1))
     else:

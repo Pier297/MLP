@@ -1,6 +1,9 @@
 - predict_batch in MSE and Cross Entropy
-- learning rate decay
 - analyze different random init for the weights
 - random search
 - NAG
 - ensemble
+
+extra:
+- relu
+- dropout

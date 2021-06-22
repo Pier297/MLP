@@ -2,15 +2,15 @@ from math import ceil
 import numpy as np
 from MLP.LossFunctions import loss_function_from_name, accuracy, MSE, CrossEntropy
 from MLP.Layers import forward, net
-from MLP.Network import model_predict_batch 
+from MLP.Network import model_predict
 from MLP.Adam import adam_step
 from math import inf
 
-def print_epoch_stats(loss_function, model, t, train_error, val_error, watch_error):
-    msg1 = f'| Train = {train_error:>18}\t'    if train_error else ''
-    msg2 = f'| Validation = {val_error:>18}\t' if val_error else ''
-    msg3 = f'| Watch = {watch_error:>18}\t'    if watch_error else ''
-    print(f'Epoch {t+1} | ({loss_function.name}) ' + msg1 + msg2 + msg3)
+def print_epoch_stats(loss_function, model, epoch, train_error, val_error, watch_error):
+    msg1 = f'| Train = {train_error:<24}'    if train_error else ''
+    msg2 = f'| Validation = {val_error:<24}' if val_error else ''
+    msg3 = f'| Watch = {watch_error:<24}'    if watch_error else ''
+    print(f'Epoch {epoch+1} | ({loss_function.name}) ' + msg1 + msg2 + msg3)
 
 def gradient_descent(model, training, validation=None, config={}, watching=None):
     def compute_weights_norm(model):
@@ -25,17 +25,18 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
             norm += np.linalg.norm(nw) + np.linalg.norm(nb)
         return norm
 
-    target_domain         = config['target_domain']
-    loss_function         = loss_function_from_name(config['loss_function_name'])
-    lr                    = config['lr']
-    l2                    = config['l2']
-    mini_batch_percentage = config['mini_batch_percentage']
-    max_unlucky_epochs    = config['max_unlucky_epochs']
-    max_epochs            = config['max_epochs']
-    print_stats           = config['print_stats']
+    target_domain              = config['target_domain']
+    loss_function              = loss_function_from_name(config['loss_function_name'])
+    lr                         = config['lr']
+    (lr_final, lr_final_epoch) = config['lr_decay'] if config['lr_decay'] is not None else (lr, 0)
+    l2                         = config['l2']
+    mini_batch_percentage      = config['mini_batch_percentage']
+    max_unlucky_epochs         = config['max_unlucky_epochs']
+    max_epochs                 = config['max_epochs']
+    print_stats                = config['print_stats']
 
     if config["optimizer"] == 'SGD':
-        momentum              = config['momentum']
+        momentum     = config['momentum']
         # Initialize to 0 the prev delta (used for momentum)
         prev_delta_W = [np.zeros(layer["W"].shape) for layer in model["layers"]]
         prev_delta_b = [np.zeros(layer["b"].shape) for layer in model["layers"]]
@@ -47,13 +48,13 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
         prev_first_delta_b = [np.zeros(layer["b"].shape) for layer in model["layers"]]
         prev_second_delta_W = [np.zeros(layer["W"].shape) for layer in model["layers"]] # r
         prev_second_delta_b = [np.zeros(layer["b"].shape) for layer in model["layers"]]
-    
+
     train_inputs    = training  [:, :model["in_dimension"]]
     train_target    = training  [:,  model["in_dimension"]:]
     val_inputs      = validation[:, :model["in_dimension"]]  if validation is not None else None
     val_target      = validation[:,  model["in_dimension"]:] if validation is not None else None
     watch_inputs    = watching  [:, :model["in_dimension"]]  if watching   is not None else None
-    watch_target    = watching  [:,  model["in_dimension"]:] if watching    is not None else None
+    watch_target    = watching  [:,  model["in_dimension"]:] if watching   is not None else None
 
     train_errors        = []
     train_accuracies    = []
@@ -71,43 +72,43 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
 
     batch_size = int(mini_batch_percentage * training.shape[0])
 
-    for t in range(max_epochs):
+    for epoch in range(max_epochs):
         # Shuffle the training data
         # TODO: Sample the mini-batches correctly? This sampling is not i.i.d.
         dataset = np.random.permutation(training)
         # For each minibatch apply gradient descent
         for i in range(0, ceil(dataset.shape[0] / batch_size)):
             mini_batch = dataset[i * batch_size:(i * batch_size) + batch_size][:]
-            
+
             nabla_W, nabla_b = compute_gradient(model, mini_batch, loss_function)
 
             if config["optimizer"] == 'SGD':
-                gradient_descent_step(model, prev_delta_W, prev_delta_b, nabla_W, nabla_b, lr, l2, momentum)
+                gradient_descent_step(model, epoch, prev_delta_W, prev_delta_b, nabla_W, nabla_b, lr, lr_final, lr_final_epoch, l2, momentum)
             elif config["optimizer"] == 'adam':
-                adam_step(nabla_W, nabla_b,
+                adam_step(model,
+                          epoch + 1,
+                          nabla_W, nabla_b,
                           prev_first_delta_W, prev_first_delta_b, # s
                           prev_second_delta_W, prev_second_delta_b, # r
                           lr,
                           l2,
-                          t + 1,
                           decay_rate_1,
                           decay_rate_2,
-                          delta,
-                          model)
+                          delta)
             weights_norms.append(compute_weights_norm(model))
             gradient_norms.append(compute_gradient_norm(nabla_W, nabla_b))
 
-        train_outputs          = model_predict_batch(model, train_inputs)
+        train_outputs          = model_predict(model, train_inputs)
         current_train_error    = loss_function.eval(train_outputs, train_target)
         current_train_accuracy =           accuracy(train_outputs, train_target, target_domain)
 
-        watch_outputs          = model_predict_batch(model, watch_inputs)                       if watching is not None else None
-        current_watch_error    = loss_function.eval(watch_outputs, watch_target)                if watching is not None else inf
-        current_watch_accuracy =           accuracy(watch_outputs, watch_target, target_domain) if watching is not None else inf
-
-        val_outputs            = model_predict_batch(model, val_inputs)                     if validation is not None else None
+        val_outputs            = model_predict(model, val_inputs)                          if validation is not None else None
         current_val_error      = loss_function.eval(val_outputs, val_target)                if validation is not None else inf
         current_val_accuracy   =           accuracy(val_outputs, val_target, target_domain) if validation is not None else inf
+
+        watch_outputs          = model_predict(model, watch_inputs)                             if watching is not None else None
+        current_watch_error    = loss_function.eval(watch_outputs, watch_target)                if watching is not None else inf
+        current_watch_accuracy =           accuracy(watch_outputs, watch_target, target_domain) if watching is not None else inf
 
         train_errors.append(current_train_error)
         train_accuracies.append(current_train_accuracy)
@@ -122,7 +123,7 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
         if validation is not None:
             if current_val_error <= best_val_error:
                 best_val_error = current_val_error
-                best_epoch = t
+                best_epoch = epoch
                 unlucky_epochs = 0
             elif unlucky_epochs == max_unlucky_epochs:
                 break
@@ -130,7 +131,7 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
                 unlucky_epochs += 1
 
         if print_stats:
-            print_epoch_stats(loss_function, model, t, current_train_error, current_val_error, current_watch_error)
+            print_epoch_stats(loss_function, model, epoch, current_train_error, current_val_error, current_watch_error)
 
     return {'val_error':        best_val_error,
             'best_epoch':       best_epoch,
@@ -143,8 +144,16 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
             'weights_norms':    weights_norms,
             'gradient_norms':   gradient_norms}
 
-def gradient_descent_step(model, prev_delta_W, prev_delta_b, nabla_W, nabla_b, lr, l2, momentum):
+def gradient_descent_step(model, epoch, prev_delta_W, prev_delta_b, nabla_W, nabla_b, lr_initial, lr_final, lr_final_epoch, l2, momentum):
+    if epoch >= lr_final_epoch:
+        alpha = 1.0
+    else:
+        alpha = epoch / lr_final_epoch
+
+    lr = (1.0 - alpha) * lr_initial + alpha * lr_final
+
     for i in range(len(nabla_W)):
+
         prev_delta_W[i] = momentum * prev_delta_W[i] - lr * nabla_W[i]
         prev_delta_b[i] = momentum * prev_delta_b[i] - lr * nabla_b[i]
 
