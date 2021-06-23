@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import numpy as np
 from MLP.experiments.utils import argmin
 
 def plot_final_training_with_test_error(train_errors, test_errors, show=False, name: str = 'MSE', file_name: str = ''):
@@ -32,7 +31,7 @@ def plot_final_training_with_test_accuracies(train_accuracies, test_accuracies=[
     if show:
         plt.show()
 
-def plot_weights_norms(weights_norms, title: str):
+def plot_weights_norms(weights_norms, title: str, file_name: str = ''):
     plt.figure()
     plt.plot(weights_norms, label='Weights norm')
     plt.legend()
@@ -40,17 +39,21 @@ def plot_weights_norms(weights_norms, title: str):
     plt.xlabel('iteration')
     plt.ylabel('norm')
     plt.draw()
+    if file_name != '':
+        plt.savefig(file_name)
 
-def plot_gradient_norms(gradient_norms, title: str):
+def plot_gradient_norms(gradient_norms, title: str, file_name: str = ''):
     plt.figure()
     plt.plot(gradient_norms, label='Gradient norm')
     plt.legend()
     plt.title(title)
     plt.xlabel('iteration')
     plt.ylabel('norm')
+    if file_name != '':
+        plt.savefig(file_name)
 
 def find_best(trials):
-    return argmin(lambda t: t['val_error'], trials)    
+    return argmin(lambda t: t['val_error'], trials)
 
 
 def plot_model(train, vals, label1, label2, *args, **kwargs):
@@ -61,14 +64,14 @@ def plot_model(train, vals, label1, label2, *args, **kwargs):
 
 def plot_model_selection_learning_curves(trials, highlight_best=True, name='MSE', show=False, file_name=''):
     plt.figure()
-    
+
     best_i = find_best(trials) if highlight_best else -1
 
     for i, results in enumerate(trials):
         plot_model(results['train_errors'], results['val_errors'],
                    'Training error' if i == best_i else '', 'Validation error' if i == best_i else '',
                    alpha=1.0 if i == best_i else 0.1)
-        
+
     plt.legend()
     plt.title(name)
     plt.xlabel('iteration')
@@ -82,14 +85,14 @@ def plot_model_selection_learning_curves(trials, highlight_best=True, name='MSE'
 
 def plot_model_selection_accuracies(trials, highlight_best=True, name='Accuracy', show=False, file_name=''):
     plt.figure()
-    
+
     best_i = find_best(trials) if highlight_best else -1
 
     for i, results in enumerate(trials):
         plot_model(results['train_accuracies'], results['val_accuracies'],
                    'Train accuracy' if i == best_i else '', 'Validation accuracy' if i == best_i else '',
                    alpha=1.0 if i == best_i else 0.1)
-    
+
     plt.legend()
     plt.title(name)
     plt.xlabel('iteration')

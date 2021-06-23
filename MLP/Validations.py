@@ -1,8 +1,6 @@
 from MLP.Network import Sequential
-from MLP.LossFunctions import loss_function_from_name
 from MLP.GradientDescent import gradient_descent
 from math import inf
-from MLP.Network import reset
 import numpy as np
 
 def holdout_hyperconfiguration(conf, training, validation, number_trials=3):

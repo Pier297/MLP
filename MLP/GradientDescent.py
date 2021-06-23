@@ -2,7 +2,7 @@ from math import ceil
 import numpy as np
 from MLP.LossFunctions import loss_function_from_name, accuracy, MSE, CrossEntropy
 from MLP.Layers import forward, net
-from MLP.Network import model_predict
+from MLP.Network import predict
 from MLP.Adam import adam_step
 from math import inf
 
@@ -98,17 +98,17 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
             weights_norms.append(compute_weights_norm(model))
             gradient_norms.append(compute_gradient_norm(nabla_W, nabla_b))
 
-        train_outputs          = model_predict(model, train_inputs)
+        train_outputs          = predict(model, train_inputs)
         current_train_error    = loss_function.eval(train_outputs, train_target)
-        current_train_accuracy =           accuracy(train_outputs, train_target, target_domain)
+        current_train_accuracy = accuracy(train_outputs, train_target, target_domain)
 
-        val_outputs            = model_predict(model, val_inputs)                          if validation is not None else None
-        current_val_error      = loss_function.eval(val_outputs, val_target)                if validation is not None else inf
-        current_val_accuracy   =           accuracy(val_outputs, val_target, target_domain) if validation is not None else inf
+        val_outputs            = predict(model, val_inputs)                       if validation is not None else None
+        current_val_error      = loss_function.eval(val_outputs, val_target)      if validation is not None else inf
+        current_val_accuracy   = accuracy(val_outputs, val_target, target_domain) if validation is not None else inf
 
-        watch_outputs          = model_predict(model, watch_inputs)                             if watching is not None else None
-        current_watch_error    = loss_function.eval(watch_outputs, watch_target)                if watching is not None else inf
-        current_watch_accuracy =           accuracy(watch_outputs, watch_target, target_domain) if watching is not None else inf
+        watch_outputs          = predict(model, watch_inputs)                         if watching is not None else None
+        current_watch_error    = loss_function.eval(watch_outputs, watch_target)      if watching is not None else inf
+        current_watch_accuracy = accuracy(watch_outputs, watch_target, target_domain) if watching is not None else inf
 
         train_errors.append(current_train_error)
         train_accuracies.append(current_train_accuracy)
@@ -161,53 +161,31 @@ def gradient_descent_step(model, epoch, prev_delta_W, prev_delta_b, nabla_W, nab
         model["layers"][i]["b"] += prev_delta_b[i] - l2 * model["layers"][i]["b"]
 
 def compute_gradient(model, mini_batch, loss_function):
-    batch_size = mini_batch.shape[0]
-    nabla_W = []
-    nabla_b = []
-    for layer in model["layers"]:
-        nabla_W.append(np.zeros(layer["W"].shape))
-        nabla_b.append(np.zeros(layer["b"].shape))
-    input_dimension = model["in_dimension"]
+    x = mini_batch[:,:model["in_dimension"]]
+    y = mini_batch[:,model["in_dimension"]:]
 
-    # Compute the gradient
-    for point in mini_batch:
-        x = point[:input_dimension].T
-        y = point[input_dimension:].T
-        (new_nabla_W, new_nabla_b) = backpropagate(model, x, y, loss_function)
-        # TODO: By making nabla_W and nabla_b tensors we can just sum them without having to iterate
-        #       then we do this iteration only once when we update the weights outside this loop.
-        #       (ofc make nabla_W & nabla_b also tensors in the backpropage method)
-        for i in range(len(nabla_W)):
-            nabla_W[i] += new_nabla_W[i]
-            nabla_b[i] += new_nabla_b[i]
-
-    return [nw/batch_size for nw in nabla_W], [nb/batch_size for nb in nabla_b]
-
-def backpropagate(model, x, y, loss_function):
     # Forward computation
-    delta_W = []
-    delta_b = []
+    deltas = []
     activations = [x]
-    net_activation_derivative = []
+    activations_der = []
+
     for layer in model["layers"]:
-        delta_W.append(np.zeros(layer["W"].shape))
-        delta_b.append(np.zeros(layer["b"].shape))
-        net_activation_derivative.append(layer["activation_func_derivative"](net(layer, x)))
-        x = forward(layer, x)
+        deltas.append(np.zeros(layer["W"].shape))
+        net_x = net(layer, x)
+        x = layer["activation_func"](net_x)
+        activations_der.append(layer["activation_func_derivative"](net_x))
         activations.append(x)
 
-    # Backward computation
     # Output layer
-    d_error_over_d_output = loss_function.gradient(activations[-1], y)
-    d_E_over_d_net = d_error_over_d_output * net_activation_derivative[-1]
-    delta_W[-1] += d_E_over_d_net * activations[-1]
-    delta_b[-1] += d_E_over_d_net
+    deltas[-1] = loss_function.gradient(activations[-1], y) * activations_der[-1]
 
-    # Hidden layer: iterate from the last hidden layer to the first
-    for l in range(2, len(model["layers"]) + 1):
-        d_error_over_d_output = np.dot(model["layers"][-l + 1]["W"].T, d_E_over_d_net)
-        d_E_over_d_net = d_error_over_d_output * net_activation_derivative[-l]
-        delta_b[-l] += d_E_over_d_net
-        delta_W[-l] += np.dot(d_E_over_d_net, np.reshape(activations[-l - 1], (model["layers"][-l]["in_dimension"], 1)).T)
+    # Hidden layers
+    for i in reversed(range(len(model["layers"])-1)):
+        deltas[i] = np.dot(deltas[i+1], model["layers"][i+1]['W']) * activations_der[i]
 
-    return (delta_W, delta_b)
+    batch_size = x.shape[0]
+
+    nabla_W = [d.T.dot(activations[i])/batch_size for i, d in enumerate(deltas)]
+    nabla_b = [d.sum()/batch_size for d in deltas]
+
+    return (nabla_W, nabla_b)

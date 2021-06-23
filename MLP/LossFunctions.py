@@ -1,6 +1,4 @@
-from multiprocessing import Value
 import numpy as np
-from MLP.Network import model_predict
 
 def loss_function_from_name(name):
     if name == 'Cross Entropy':
@@ -30,9 +28,7 @@ class CrossEntropy:
         return -np.sum(target * np.log(output + EPSILON) + (1 - target) * np.log(1 - output + EPSILON)) / output.shape[0]
 
     def gradient(self, last_layer_output, target):
-        y = target
-        o = last_layer_output
-        return (y - 1) / ((o - 1) + EPSILON) - y/(o + EPSILON)
+        return (target - 1) / ((last_layer_output - 1) + EPSILON) - target/(last_layer_output + EPSILON)
 
 def discretize(output, target_domain=(-1, 1)):
     return np.array([target_domain[1] if v >= (target_domain[0] + target_domain[1])/2 else target_domain[0] for v in output])
