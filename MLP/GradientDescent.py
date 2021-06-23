@@ -186,6 +186,6 @@ def compute_gradient(model, mini_batch, loss_function):
     batch_size = x.shape[0]
 
     nabla_W = [d.T.dot(activations[i])/batch_size for i, d in enumerate(deltas)]
-    nabla_b = [d.sum()/batch_size for d in deltas]
+    nabla_b = [d.sum(axis=0)/batch_size for d in deltas]
 
     return (nabla_W, nabla_b)
