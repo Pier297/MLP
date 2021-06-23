@@ -34,6 +34,7 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
     max_unlucky_epochs         = config['max_unlucky_epochs']
     max_epochs                 = config['max_epochs']
     print_stats                = config['print_stats']
+    min_train_error            = config['min_train_error'] if 'min_train_error' in config and config['min_train_error'] is not None else 0.0
 
     if config["optimizer"] == 'SGD':
         momentum     = config['momentum']
@@ -44,8 +45,8 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
         decay_rate_1 = config['decay_rate_1']
         decay_rate_2 = config['decay_rate_2']
         delta = 1e-8 # used for numerical stability
-        prev_first_delta_W = [np.zeros(layer["W"].shape) for layer in model["layers"]] # s
-        prev_first_delta_b = [np.zeros(layer["b"].shape) for layer in model["layers"]]
+        prev_first_delta_W  = [np.zeros(layer["W"].shape) for layer in model["layers"]] # s
+        prev_first_delta_b  = [np.zeros(layer["b"].shape) for layer in model["layers"]]
         prev_second_delta_W = [np.zeros(layer["W"].shape) for layer in model["layers"]] # r
         prev_second_delta_b = [np.zeros(layer["b"].shape) for layer in model["layers"]]
 
@@ -119,7 +120,11 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
         val_errors.append(current_val_error)
         val_accuracies.append(current_val_accuracy)
 
-        # Early stopping logic
+        # Early stopping with max accuracy logic
+        if current_train_error <= min_train_error:
+            break
+
+        # Early stopping with cross validation logic
         if validation is not None:
             if current_val_error <= best_val_error:
                 best_val_error = current_val_error

@@ -10,7 +10,7 @@ import time
 import random
 import os
 
-global_seed = 1 # (22 is unlucky)
+global_seed = 12 # (22 is unlucky)
 random.seed(global_seed)
 np.random.seed(global_seed)
 
@@ -58,10 +58,10 @@ if __name__ == '__main__':
             max_epochs             = 500,
             validation_type        = {'method': 'kfold', 'k': 5}, # validation_type={'method': 'holdout'},
 
-            lr                     = [0.6], # 0.6
+            lr                     = [0.1, 0.2, 0.4, 0.6, 0.8], # 0.6
             lr_decay               = [None], #[(0.0, 50)],
-            l2                     = [0],
-            momentum               = [0.3],
+            l2                     = [0, 1e-3, 1e-5],
+            momentum               = [0.1, 0.3, 0.6],
             decay_rate_1           = [0.8],
             decay_rate_2           = [0.99],
             hidden_layers          = [([('tanh',3)],'sigmoid')],
@@ -89,13 +89,18 @@ if __name__ == '__main__':
 
         best_i = argmin(lambda t: t['val_error'], best_results['trials'])
 
+        best_epoch = best_results["trials"][best_i]["best_epoch"]
+
         # --- Retraining: define a new model with the best conf. and train on all the data ---
         model = Sequential(best_hyperparameters, change_seed=True)
 
         final_hyperparameters = {**best_hyperparameters,
-                                'max_epochs': best_results["trials"][best_i]["best_epoch"] + 1,
-                                'print_stats': True}
+                                 'max_epochs':      best_epoch,
+                                 'min_train_error': best_results["trials"][best_i]["val_errors"][best_epoch],
+                                 'print_stats': True}
 
+        model = Sequential(final_hyperparameters, change_seed=True)
+        
         final_results = gradient_descent(model, training, None, final_hyperparameters, watching=test)
 
         train_input  = training[:, :model["in_dimension"]]
@@ -106,8 +111,14 @@ if __name__ == '__main__':
         train_output = predict(model, train_input)
         test_output  = predict(model, test_input)
 
-        print("\nTrain accuracy =", accuracy(train_output, train_target, target_domain))
-        print("Test accuracy =",    accuracy(test_output, test_target, target_domain))
+        print("\n")
+        print(f"Hyperparameters searched             = {len(hyperparameters)}")
+        print( "Best grid search validation epoch    =", best_epoch + 1)
+        print( "Best grid search validation accuracy =", best_results["trials"][best_i]["val_accuracies"][best_epoch])
+        print( "Best grid search validation error    =", best_results["trials"][best_i]["val_errors"][best_epoch])
+        print( "Final selected train accuracy        =", accuracy(train_output, train_target, target_domain))
+        print( "Final selected train error           =", final_results['train_errors'][-1])
+        print( "Final test accuracy                  =", accuracy(test_output, test_target, target_domain))
 
         print("\n", final_hyperparameters)
 
