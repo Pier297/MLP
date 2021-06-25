@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from MLP.experiments.utils import argmin
+from MLP.Utils import argmin
 
 def plot_final_training_with_test_error(train_errors, test_errors, show=False, name: str = 'MSE', file_name: str = ''):
     plt.figure()

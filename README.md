@@ -24,7 +24,7 @@
 
 5. Run an experiment
 
-        python MLP/experiments/monk1.py
+        python MLP/monk/monk1.py
 
 ### Linux
 
@@ -50,7 +50,7 @@
 
 5. Run an experiment
 
-        python MLP/experiments/monk1.py
+        python MLP/monk/monk1.py
 
 ### MacOS
 

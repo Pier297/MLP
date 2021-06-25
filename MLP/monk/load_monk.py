@@ -1,29 +1,17 @@
-import random
 import numpy as np
-from math import inf
-
-def argmin(f, v):
-    minimum = inf
-    minimum_i = -1
-    for (i, x) in enumerate(v):
-        xv = f(x)
-        if minimum > xv:
-            minimum = xv
-            minimum_i = i
-    if minimum_i == -1:
-        raise 'Empty list passed to argmin'
-    return minimum_i
-
-def set_seed(seed):
-    random.seed(seed)
-    np.random.seed(seed)
 
 # 'number' can be 1, 2 or 3
 # It returns the dataset splitted into training and test set.
 # Already handling the one-hot representation
+
+def one_hot(x, k):
+    r = np.zeros(k, dtype=int)
+    r[x - 1] = 1
+    return r
+
 def load_monk(number: int, target_domain=(-1, 1)):
-    training = _load_monk(f'MLP/experiments/data/monks-{str(number)}.train', target_domain)
-    test = _load_monk(f'MLP/experiments/data/monks-{str(number)}.test', target_domain)
+    training = _load_monk(f'MLP/monk/data/monks-{str(number)}.train', target_domain)
+    test = _load_monk(f'MLP/monk/data/monks-{str(number)}.test', target_domain)
     return (training, test)
 
 def _load_monk(file_name: str, target_domain=(-1, 1)):
@@ -47,8 +35,3 @@ def _load_monk(file_name: str, target_domain=(-1, 1)):
             y = [out]
             data.append(np.concatenate([x, y]))
     return np.array(data)
-
-def one_hot(x, k):
-    r = np.zeros(k, dtype=int)
-    r[x - 1] = 1
-    return r

@@ -42,8 +42,8 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
         prev_delta_W = [np.zeros(layer["W"].shape) for layer in model["layers"]]
         prev_delta_b = [np.zeros(layer["b"].shape) for layer in model["layers"]]
     elif config["optimizer"] == 'adam':
-        decay_rate_1 = config['decay_rate_1']
-        decay_rate_2 = config['decay_rate_2']
+        decay_rate_1 = config['adam_decay_rate_1']
+        decay_rate_2 = config['adam_decay_rate_2']
         delta = 1e-8 # used for numerical stability
         prev_first_delta_W  = [np.zeros(layer["W"].shape) for layer in model["layers"]] # s
         prev_first_delta_b  = [np.zeros(layer["b"].shape) for layer in model["layers"]]

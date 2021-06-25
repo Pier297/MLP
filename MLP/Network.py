@@ -1,21 +1,21 @@
 import numpy as np
 from MLP.Layers import Dense, forward
 from MLP.ActivationFunctions import activation_function_from_name
+import random
 
-def Sequential(conf, change_seed=False):
-    in_dimension = conf["in_dimension"]
+def Sequential(conf):
+    in_dimension  = conf["in_dimension"]
     out_dimension = conf["out_dimension"]
 
     model = {}
-    model["seed"] = np.random.randint(2**31-1) if change_seed else conf["seed"]
-    model["layers"] = []
-    model["in_dimension"] = in_dimension
+    model["seed"]          = conf["seed"]
+    model["layers"]        = []
+    model["in_dimension"]  = in_dimension
     model["out_dimension"] = out_dimension
 
     np.random.seed(model["seed"])
 
     # Generate the activation functions lambda from their names
-    # ([('tanh',4)],'sigmoid')
     hidden_activation_functions = [activation_function_from_name(name) for (name, _) in conf["hidden_layers"][0]]
     hidden_activation_functions.append(activation_function_from_name(conf["hidden_layers"][1]))
 
@@ -32,15 +32,3 @@ def predict(model, x):
     for layer in model["layers"]:
         x = forward(layer, x)
     return x
-
-def reset(old_model):
-    model = {}
-    model["layers"] = []
-    model["in_dimension"] = old_model["in_dimension"]
-    model["out_dimension"] = old_model["out_dimension"]
-    model["seed"] = old_model["seed"] # TODO: Maybe we want a new random seed?
-
-    for layer in old_model["layers"]:
-        model["layers"].append(Dense(layer["in_dimension"], layer["out_dimension"], layer["use_bias"], (layer["activation_func"], layer["activation_func_derivative"])))
-
-    return model

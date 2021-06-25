@@ -1,15 +1,12 @@
 from MLP.Validations import holdout_hyperconfiguration, kfold_hyperconfiguration
 from itertools import repeat
 from multiprocessing import Pool
-from MLP.experiments.utils import argmin
+from MLP.Utils import argmin, change_seed
 from MLP.LossFunctions import loss_function_from_name
 from MLP.Network import Sequential
 from math import ceil
 import time
 import numpy as np
-
-def add_seeds(ds):
-    return [{**d, "seed": np.random.randint(2**31-1)} for d in ds]
 
 def generate_hyperparameters(**params):
     results = [{}]
@@ -24,7 +21,7 @@ def generate_hyperparameters(**params):
         else:
             results = list(cartesian_product(k, [v], results))
 
-    return add_seeds(results)
+    return list(map(change_seed, results))
 
 def call_holdout(args):
     i, (conf, (train_set, val_set)) = args

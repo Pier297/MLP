@@ -3,14 +3,15 @@ from MLP.GradientDescent import gradient_descent
 from MLP.Plotting import *
 from MLP.LossFunctions import accuracy
 from MLP.GridSearch import generate_hyperparameters, grid_search
-from MLP.experiments.utils import load_monk, argmin
+from MLP.Utils import argmin, generate_seed
+from MLP.monk.load_monk import load_monk
 from multiprocessing import cpu_count
 import numpy as np
 import time
 import random
 import os
 
-global_seed = 12 # (22 is unlucky)
+global_seed = 2 # (22 is unlucky)
 random.seed(global_seed)
 np.random.seed(global_seed)
 
@@ -21,17 +22,17 @@ np.seterr(all='raise')
 if __name__ == '__main__':
 
     try:
-        os.remove('MLP/experiments/plots/')
+        os.remove('MLP/monk/plots/')
     except:
         pass
     try:
-        os.mkdir(f'MLP/experiments/plots/')
+        os.mkdir(f'MLP/monk/plots/')
     except:
         pass
 
     for monk_id in monks:
         try:
-            os.mkdir(f'MLP/experiments/plots/monk{monk_id}/')
+            os.mkdir(f'MLP/monk/plots/monk{monk_id}/')
         except:
             pass
 
@@ -61,9 +62,9 @@ if __name__ == '__main__':
             lr                     = [0.1, 0.2, 0.4, 0.6, 0.8], # 0.6
             lr_decay               = [None], #[(0.0, 50)],
             l2                     = [0, 1e-3, 1e-5],
-            momentum               = [0.1, 0.3, 0.6],
-            decay_rate_1           = [0.8],
-            decay_rate_2           = [0.99],
+            momentum               = [0, 0.1, 0.3, 0.6],
+            adam_decay_rate_1      = [0.8],
+            adam_decay_rate_2      = [0.99],
             hidden_layers          = [([('tanh',3)],'sigmoid')],
             print_stats            = False
         )
@@ -91,16 +92,18 @@ if __name__ == '__main__':
 
         best_epoch = best_results["trials"][best_i]["best_epoch"]
 
-        # --- Retraining: define a new model with the best conf. and train on all the data ---
-        model = Sequential(best_hyperparameters, change_seed=True)
+        #a = generate_seed()
+        #b = generate_seed()
 
+        # --- Retraining: define a new model with the best conf. and train on all the data ---
         final_hyperparameters = {**best_hyperparameters,
                                  'max_epochs':      best_epoch,
-                                 'min_train_error': best_results["trials"][best_i]["val_errors"][best_epoch],
-                                 'print_stats': True}
-
-        model = Sequential(final_hyperparameters, change_seed=True)
+                                 #'min_train_error': best_results["trials"][best_i]["train_errors"][best_epoch],
+                                 'seed':            generate_seed(),
+                                 'print_stats':     True}
         
+        model = Sequential(final_hyperparameters)
+
         final_results = gradient_descent(model, training, None, final_hyperparameters, watching=test)
 
         train_input  = training[:, :model["in_dimension"]]
@@ -112,30 +115,30 @@ if __name__ == '__main__':
         test_output  = predict(model, test_input)
 
         print("\n")
-        print(f"Hyperparameters searched             = {len(hyperparameters)}")
-        print( "Best grid search validation epoch    =", best_epoch + 1)
-        print( "Best grid search validation accuracy =", best_results["trials"][best_i]["val_accuracies"][best_epoch])
-        print( "Best grid search validation error    =", best_results["trials"][best_i]["val_errors"][best_epoch])
-        print( "Final selected train accuracy        =", accuracy(train_output, train_target, target_domain))
-        print( "Final selected train error           =", final_results['train_errors'][-1])
-        print( "Final test accuracy                  =", accuracy(test_output, test_target, target_domain))
+        print(f'Final model seed                     = {final_hyperparameters["seed"]}')
+        print(f'Hyperparameters searched             = {len(hyperparameters)}')
+        print(f'Best grid search validation epoch    = {best_epoch + 1}')
+        print(f'Best grid search validation accuracy = {best_results["trials"][best_i]["val_accuracies"][best_epoch]}')
+        print(f'Best grid search validation error    = {best_results["trials"][best_i]["val_errors"][best_epoch]}')
+        print(f'Final selected train accuracy        = {accuracy(train_output, train_target, target_domain)}')
+        print(f'Final selected train error           = {final_results["train_errors"][-1]}')
+        print(f'Final test accuracy                  = {accuracy(test_output, test_target, target_domain)}')
+        print(f'Grid search total time (s)           = {after_grid_search_time - before_grid_search_time} seconds')
 
-        print("\n", final_hyperparameters)
-
-        print("Grid search total time (s): ", after_grid_search_time - before_grid_search_time)
+        print("\nFinal hyperparameters\n\n", final_hyperparameters)
 
         # Plot the weights and gradient norm during the best trial of the best hyperparameter
-        plot_weights_norms(best_results["trials"][best_i]["weights_norms"],   title='Weights norm during model selection',  file_name=f'MLP/experiments/plots/monk{monk_id}/model_selection_weights_norms.png')
-        plot_gradient_norms(best_results["trials"][best_i]["gradient_norms"], title='Gradient norm during model selection', file_name=f'MLP/experiments/plots/monk{monk_id}/model_selection_gradient_norms.png')
+        plot_weights_norms(best_results["trials"][best_i]["weights_norms"],   title='Weights norm during model selection',  file_name=f'MLP/monk/plots/monk{monk_id}/model_selection_weights_norms.png')
+        plot_gradient_norms(best_results["trials"][best_i]["gradient_norms"], title='Gradient norm during model selection', file_name=f'MLP/monk/plots/monk{monk_id}/model_selection_gradient_norms.png')
 
         # Plot the weights and gradient norm during the final training
-        plot_weights_norms(final_results['weights_norms'],   title='Weights norm during final training',  file_name=f'MLP/experiments/plots/monk{monk_id}/final_weights_norms.png')
-        plot_gradient_norms(final_results['gradient_norms'], title='Gradient norm during final training', file_name=f'MLP/experiments/plots/monk{monk_id}/final_gradient_norms.png')
+        plot_weights_norms(final_results['weights_norms'],   title='Weights norm during final training',  file_name=f'MLP/monk/plots/monk{monk_id}/final_weights_norms.png')
+        plot_gradient_norms(final_results['gradient_norms'], title='Gradient norm during final training', file_name=f'MLP/monk/plots/monk{monk_id}/final_gradient_norms.png')
 
         # Plot the learning curves during the training of the best hyperparameter conf.
-        plot_model_selection_learning_curves(best_results['trials'], name=best_hyperparameters['loss_function_name'], highlight_best=True, file_name=f'MLP/experiments/plots/monk{monk_id}/model_selection_errors.png')
-        plot_model_selection_accuracies(best_results['trials'], highlight_best=True,                                                       file_name=f'MLP/experiments/plots/monk{monk_id}/model_selection_accuracies.png')
+        plot_model_selection_learning_curves(best_results['trials'], name=best_hyperparameters['loss_function_name'], highlight_best=True, file_name=f'MLP/monk/plots/monk{monk_id}/model_selection_errors.png')
+        plot_model_selection_accuracies(best_results['trials'], highlight_best=True,                                                       file_name=f'MLP/monk/plots/monk{monk_id}/model_selection_accuracies.png')
 
         # Plot the final learning curve while training on all the data
-        plot_final_training_with_test_error     (final_results['train_errors'],     final_results['watch_errors'],     name=best_hyperparameters['loss_function_name'], file_name=f'MLP/experiments/plots/monk{monk_id}/final_errors.png')
-        plot_final_training_with_test_accuracies(final_results['train_accuracies'], final_results['watch_accuracies'], show=True,                                       file_name=f'MLP/experiments/plots/monk{monk_id}/final_accuracies.png')
+        plot_final_training_with_test_error     (final_results['train_errors'],     final_results['watch_errors'],     name=best_hyperparameters['loss_function_name'], file_name=f'MLP/monk/plots/monk{monk_id}/final_errors.png')
+        plot_final_training_with_test_accuracies(final_results['train_accuracies'], final_results['watch_accuracies'], show=True,                                       file_name=f'MLP/monk/plots/monk{monk_id}/final_accuracies.png')
