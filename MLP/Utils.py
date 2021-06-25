@@ -19,7 +19,10 @@ def set_seed(seed):
     np.random.seed(seed)
 
 def generate_seed():
-    return np.random.randint(2**31-1)
+    return np.random.randint(2**26-1)
+
+def combine_subseed(ss1, ss2):
+    return ss1 + ss2
 
 def change_seed(d, subseed=None):
     return {**d, "seed": generate_seed() if subseed is None else d['seed'] + subseed}

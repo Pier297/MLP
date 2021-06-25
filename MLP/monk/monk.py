@@ -57,6 +57,7 @@ if __name__ == '__main__':
             mini_batch_percentage  = 1,
             max_unlucky_epochs     = 50,
             max_epochs             = 500,
+            number_trials          = 4,
             validation_type        = {'method': 'kfold', 'k': 5}, # validation_type={'method': 'holdout'},
 
             lr                     = [0.1, 0.2, 0.4, 0.6, 0.8], # 0.6
@@ -101,7 +102,7 @@ if __name__ == '__main__':
                                  #'min_train_error': best_results["trials"][best_i]["train_errors"][best_epoch],
                                  'seed':            generate_seed(),
                                  'print_stats':     True}
-        
+
         model = Sequential(final_hyperparameters)
 
         final_results = gradient_descent(model, training, None, final_hyperparameters, watching=test)

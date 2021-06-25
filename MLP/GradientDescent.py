@@ -138,7 +138,7 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
         if print_stats:
             print_epoch_stats(loss_function, model, epoch, current_train_error, current_val_error, current_watch_error)
 
-    return {'val_error':        best_val_error,
+    return {'best_val_error':   best_val_error,
             'best_epoch':       best_epoch,
             'train_errors':     train_errors,
             'train_accuracies': train_accuracies,

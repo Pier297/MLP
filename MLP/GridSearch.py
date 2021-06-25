@@ -4,7 +4,7 @@ from multiprocessing import Pool
 from MLP.Utils import argmin, change_seed
 from MLP.LossFunctions import loss_function_from_name
 from MLP.Network import Sequential
-from math import ceil
+from math import ceil, inf
 import time
 import numpy as np
 
@@ -23,12 +23,31 @@ def generate_hyperparameters(**params):
 
     return list(map(change_seed, results))
 
+def trialize(number_trials, validation_method):
+    trials = []
+    sum_val_errors = 0.0
+    for t in range(number_trials):
+        result = validation_method(t) # Give t as the subseed
+        sum_val_errors += result['best_val_error']
+        trials.append(result)
+    return {'val_error': sum_val_errors / number_trials, 'trials': trials}
+
 def call_holdout(args):
     i, (conf, (train_set, val_set)) = args
     before = time.perf_counter()
-    results = holdout_hyperconfiguration(conf, train_set, val_set)
+    results = trialize(conf['number_trials'],
+                       lambda subseed: holdout_hyperconfiguration(conf, train_set, val_set, subseed))
     after = time.perf_counter()
     print(f"Holdout finished ({i}, val_error: {results['val_error']}), time (s): {after-before}")
+    return results
+
+def call_kfold(args):
+    i, (conf, (folded_dataset)) = args
+    before = time.perf_counter()
+    results = trialize(conf['number_trials'],
+                       lambda subseed: kfold_hyperconfiguration(conf, folded_dataset, subseed))
+    after = time.perf_counter()
+    print(f"K-fold finished ({i}, val_error: {results['val_error']}), time (s): {after-before}")
     return results
 
 def holdout_grid_search(hyperparameters, training, n_workers):
@@ -45,14 +64,6 @@ def holdout_grid_search(hyperparameters, training, n_workers):
     (train_set, val_set) = split_train_set(training, hyperparameters[0]['validation_percentage'])
     with Pool(processes=n_workers) as pool:
         return pool.map(call_holdout, enumerate(zip(hyperparameters, repeat((train_set, val_set)))))
-
-def call_kfold(args):
-    i, (conf, (folded_dataset)) = args
-    before = time.perf_counter()
-    results = kfold_hyperconfiguration(conf, folded_dataset)
-    after = time.perf_counter()
-    print(f"K-fold finished ({i}, val_error: {results['val_error']}), time (s): {after-before}")
-    return results
 
 def kfold_grid_search(hyperparameters, training, n_workers):
     def split_chunks(vals, k):
