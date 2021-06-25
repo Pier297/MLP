@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.collections import LineCollection
 from MLP.Utils import argmin
 
 def end_plotting():
@@ -6,6 +7,13 @@ def end_plotting():
 
 def plot_compare_outputs(train_output, watch_output, name: str):
     plt.figure()
+
+    fig, ax = plt.subplots()
+
+    tupleify = lambda x: (x[0], x[1])
+
+    ax.add_collection(LineCollection([[tupleify(train_output[i]), tupleify(watch_output[i])] for i in range(len(train_output))]))
+
     plt.title('Scatter outputs: ' + name)
     plt.scatter(train_output[:,0], train_output[:,1], marker='o', s=1, color='blue')
     plt.scatter(watch_output[:,0], watch_output[:,1], marker='o', s=1, color='green')

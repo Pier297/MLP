@@ -14,6 +14,9 @@ def argmin(f, v):
         raise 'Empty list passed to argmin'
     return minimum_i
 
+def average(s):
+    return sum(s) / len(s)
+
 def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
@@ -26,3 +29,24 @@ def combine_subseed(ss1, ss2):
 
 def change_seed(d, subseed=None):
     return {**d, "seed": generate_seed() if subseed is None else d['seed'] + subseed}
+
+def get_data_statistics(X):
+    return {'avg': np.average(X), 'std': np.std(X)}
+
+def normalize(X, stats):
+    return (X - stats['avg']) / stats['std']
+
+def denormalize(X, stats):
+    return (X * stats['std']) + stats['avg']
+
+def normalize_data(M_original, stats):
+    M = np.array(M_original)
+    for i, stat in enumerate(stats):
+        M[:, i] = normalize(M[:, i], stat)
+    return M
+
+def denormalize_data(M_original, stats):
+    M = np.array(M_original)
+    for i, stat in enumerate(stats):
+        M[:, i] = denormalize(M[:, i], stat)
+    return M

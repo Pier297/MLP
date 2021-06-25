@@ -1,7 +1,7 @@
 from MLP.Validations import holdout_hyperconfiguration, kfold_hyperconfiguration
 from itertools import repeat
 from multiprocessing import Pool
-from MLP.Utils import argmin, change_seed
+from MLP.Utils import argmin, change_seed, average
 from MLP.LossFunctions import loss_function_from_name
 from MLP.Network import Sequential
 from math import ceil, inf
@@ -38,7 +38,7 @@ def call_holdout(args):
     results = trialize(conf['number_trials'],
                        lambda subseed: holdout_hyperconfiguration(conf, train_set, val_set, subseed))
     after = time.perf_counter()
-    print(f"Holdout finished ({i}, val_error: {results['val_error']}), time (s): {after-before}")
+    print(f"Holdout finished (VE: {results['val_error']}, avg trial best epoch: {int(average(list(map(lambda x: x['best_epoch'], results['trials']))))}), time (s): {after-before}")
     return results
 
 def call_kfold(args):
@@ -47,7 +47,7 @@ def call_kfold(args):
     results = trialize(conf['number_trials'],
                        lambda subseed: kfold_hyperconfiguration(conf, folded_dataset, subseed))
     after = time.perf_counter()
-    print(f"K-fold finished ({i}, val_error: {results['val_error']}), time (s): {after-before}")
+    print(f"K-fold finished (VE: {results['val_error']}, avg trial best epoch: {int(average(list(map(lambda x: x['best_epoch'], results['trials']))))}), time (s): {after-before}")
     return results
 
 def holdout_grid_search(hyperparameters, training, n_workers):
@@ -62,8 +62,6 @@ def holdout_grid_search(hyperparameters, training, n_workers):
         return (train_set, val_set)
     # Split the dataset into train and validation set.
     (train_set, val_set) = split_train_set(training, hyperparameters[0]['validation_percentage'])
-    print(train_set.shape)
-    print('val', val_set.shape)
     with Pool(processes=n_workers) as pool:
         return pool.map(call_holdout, enumerate(zip(hyperparameters, repeat((train_set, val_set)))))
 

@@ -53,7 +53,7 @@ if __name__ == '__main__':
             in_dimension           = 17,
             out_dimension          = 1,
             target_domain          = target_domain,
-            validation_percentage  = 0.2, # percentage of data into validation, remaining into training
+            validation_percentage  = 0.20, # percentage of data into validation, remaining into training
             mini_batch_percentage  = 1,
             max_unlucky_epochs     = 50,
             max_epochs             = 500,
@@ -128,10 +128,6 @@ if __name__ == '__main__':
 
         print("\nFinal hyperparameters\n\n", final_hyperparameters)
 
-        # Plot the weights and gradient norm during the best trial of the best hyperparameter
-        plot_weights_norms(best_results["trials"][best_i]["weights_norms"],   title='Weights norm during model selection',  file_name=f'MLP/monk/plots/monk{monk_id}/model_selection_weights_norms.png')
-        plot_gradient_norms(best_results["trials"][best_i]["gradient_norms"], title='Gradient norm during model selection', file_name=f'MLP/monk/plots/monk{monk_id}/model_selection_gradient_norms.png')
-
         # Plot the weights and gradient norm during the final training
         plot_weights_norms(final_results['weights_norms'],   title='Weights norm during final training',  file_name=f'MLP/monk/plots/monk{monk_id}/final_weights_norms.png')
         plot_gradient_norms(final_results['gradient_norms'], title='Gradient norm during final training', file_name=f'MLP/monk/plots/monk{monk_id}/final_gradient_norms.png')
@@ -142,4 +138,6 @@ if __name__ == '__main__':
 
         # Plot the final learning curve while training on all the data
         plot_final_training_with_test_error     (final_results['train_errors'],     final_results['watch_errors'],     name=best_hyperparameters['loss_function_name'], file_name=f'MLP/monk/plots/monk{monk_id}/final_errors.png')
-        plot_final_training_with_test_accuracies(final_results['train_accuracies'], final_results['watch_accuracies'], show=True,                                       file_name=f'MLP/monk/plots/monk{monk_id}/final_accuracies.png')
+        plot_final_training_with_test_accuracies(final_results['train_accuracies'], final_results['watch_accuracies'],                                                  file_name=f'MLP/monk/plots/monk{monk_id}/final_accuracies.png')
+
+        end_plotting()
