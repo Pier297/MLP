@@ -4,7 +4,6 @@ from MLP.LossFunctions import loss_function_from_name, accuracy, MSE, CrossEntro
 from MLP.Layers import forward, net
 from MLP.Network import predict
 from MLP.Adam import adam_step
-from MLP.Utils import denormalize_data
 from math import inf
 
 def print_epoch_stats(loss_function, model, epoch, train_error, val_error, watch_error):
@@ -13,7 +12,7 @@ def print_epoch_stats(loss_function, model, epoch, train_error, val_error, watch
     msg3 = f'| Watch = {watch_error:<24}'    if watch_error else ''
     print(f'Epoch {epoch+1} | ({loss_function.name}) ' + msg1 + msg2 + msg3)
 
-def gradient_descent(model, training, validation=None, config={}, watching=None, watching_normalization_statistics=None):
+def gradient_descent(model, training, validation=None, config={}, watching=None):
     def compute_weights_norm(model):
         norm = 0.0
         for layer in model["layers"]:
@@ -108,23 +107,10 @@ def gradient_descent(model, training, validation=None, config={}, watching=None,
         current_val_error      = loss_function.eval(val_outputs, val_target)      if validation is not None else inf
         current_val_accuracy   = accuracy(val_outputs, val_target, target_domain) if validation is not None and target_domain is not None else inf
 
-        watch_outputs = predict(model, watch_inputs) if watching is not None else inf
+        watch_outputs          = predict(model, watch_inputs)                         if watching is not None else None
+        current_watch_error    = loss_function.eval(watch_outputs, watch_target)      if watching is not None else inf
+        current_watch_accuracy = accuracy(watch_outputs, watch_target, target_domain) if watching is not None and target_domain is not None else inf
 
-        # Denormalize the output values of the model so that they can be compared to the watch dataset
-        if watching is None:
-            current_watch_error    = inf
-            current_watch_accuracy = inf
-        else:
-            if watching_normalization_statistics is not None:
-                displayed_watch_outputs = denormalize_data(watch_outputs, watching_normalization_statistics[model['in_dimension']:])
-                displayed_watch_targets = denormalize_data(watch_target,  watching_normalization_statistics[model['in_dimension']:])
-            else:
-                displayed_watch_outputs = watch_outputs
-                displayed_watch_targets = watch_target
-
-            current_watch_error    = loss_function.eval(displayed_watch_outputs, displayed_watch_targets)
-            current_watch_accuracy = accuracy(displayed_watch_outputs, displayed_watch_targets, target_domain) if target_domain is not None else inf
-    
         watch_errors.append(current_watch_error)
         watch_accuracies.append(current_watch_accuracy)
 

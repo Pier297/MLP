@@ -1,9 +1,9 @@
 from MLP.Network import Sequential, predict
 from MLP.GradientDescent import gradient_descent
 from MLP.Plotting import *
-from MLP.LossFunctions import accuracy, mean_euclidean_error
+from MLP.LossFunctions import mean_euclidean_error
 from MLP.GridSearch import generate_hyperparameters, grid_search
-from MLP.Utils import argmin, generate_seed, normalize_data, denormalize_data, average, get_data_statistics
+from MLP.Utils import argmin, generate_seed, average
 from MLP.cup.load_cup import load_cup
 from multiprocessing import cpu_count
 import numpy as np
@@ -40,16 +40,6 @@ if __name__ == '__main__':
     test_target  = test[:, in_dimension:]
     test_input   = test[:, :in_dimension]
 
-
-    # Compute mean and std of training dataset
-    training_statistics = [get_data_statistics(col) for col in training.T]
-
-    # Normalize the training data
-    normalized_training = normalize_data(training, training_statistics)
-
-    # Normalize the test data (this is only used as input to watch in the final stage of the project to make plots)
-    normalized_test = normalize_data(test, training_statistics)
-
     # Start the grid search
     hyperparameters = generate_hyperparameters(
         loss_function_name     = "MSE",
@@ -79,7 +69,7 @@ if __name__ == '__main__':
 
     before_grid_search_time = time.perf_counter()
 
-    best_hyperparameters, best_results = grid_search(hyperparameters, normalized_training, cpu_count())
+    best_hyperparameters, best_results = grid_search(hyperparameters, training, cpu_count())
 
     after_grid_search_time = time.perf_counter()
 
@@ -92,29 +82,29 @@ if __name__ == '__main__':
     # --- Retraining: define a new model with the best conf. and train on all the data ---
 
     final_hyperparameters = {**best_hyperparameters,
-                             'max_epochs':      final_training_epochs,
-                             'seed':            generate_seed(),
-                             'print_stats':     True}
+                             'max_epochs':  final_training_epochs,
+                             'seed':        generate_seed(),
+                             'print_stats': True}
 
     model = Sequential(final_hyperparameters)
 
-    final_results = gradient_descent(model, normalized_training, None, final_hyperparameters, watching=normalized_test, watching_normalization_statistics=training_statistics)
+    final_results = gradient_descent(model, training, None, final_hyperparameters, watching=test)
 
     # assert False
     # CAREFUL: we start dealing here with the test set!
 
-    train_output = denormalize_data(predict(model, normalized_training[:, :model["in_dimension"]]), training_statistics[model["in_dimension"]:])
-    test_output  = denormalize_data(predict(model, normalized_test    [:, :model["in_dimension"]]), training_statistics[model["in_dimension"]:])
+    train_output = predict(model, train_input)
+    test_output  = predict(model, test_input)
 
     print("\n")
     print()
     print(f'Final model seed                     = {final_hyperparameters["seed"]}')
     print(f'Hyperparameters searched             = {len(hyperparameters)}')
-    print(f'Best grid search validation epoch    = {final_training_epochs + 1}')
-    print(f'Best grid search validation error    = {best_results["val_error"]}')
-    print(f'Final retrained MEE on training      = {mean_euclidean_error(train_output, train_target)}')
+    print(f'Best grid search validation epoch    = {final_training_epochs + 1} epochs')
+    print(f'Best grid search validation error    = (MSE) {best_results["val_error"]} ')
+    print(f'Final retrained MEE on training      = (MEE) {mean_euclidean_error(train_output, train_target)}')
     # CAREFUL! UNCOMMENT ONLY AT THE END OF THE ENTIRE EXPERIMENT
-    print(f'Final retrained MEE on test      (!) = {mean_euclidean_error(test_output, test_target)}')
+    print(f'Final retrained MEE on test          = (MEE) {mean_euclidean_error(test_output, test_target)}')
     print(f'Grid search total time (s)           = {after_grid_search_time - before_grid_search_time} seconds')
 
     print("\nFinal hyperparameters\n\n", final_hyperparameters)
@@ -128,7 +118,7 @@ if __name__ == '__main__':
 
     # Plot the final learning curve while training on all the data
     plot_final_training_with_test_error(final_results['train_errors'],final_results['watch_errors'],name=best_hyperparameters['loss_function_name'], file_name=f'MLP/cup/plots/final_errors.png',
-               skip_first_elements=0)
+                                        skip_first_elements=0)
 
     plot_compare_outputs(train_output, train_target, name='Final training output comparison', file_name='MLP/cup/plots/scatter_train.png')
 
