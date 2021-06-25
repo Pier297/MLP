@@ -11,11 +11,11 @@ import time
 import random
 import os
 
-global_seed = 2 # (22 is unlucky)
+global_seed = 42
 random.seed(global_seed)
 np.random.seed(global_seed)
 
-monks = [1] # [1, 2, 3]
+monks = [2] # [1, 2, 3]
 
 np.seterr(all='raise')
 
@@ -36,7 +36,7 @@ if __name__ == '__main__':
         except:
             pass
 
-        target_domain=(0, 1)
+        target_domain = (0, 1)
 
         (training, test) = load_monk(monk_id, target_domain)
 
@@ -57,8 +57,8 @@ if __name__ == '__main__':
             mini_batch_percentage  = 1,
             max_unlucky_epochs     = 50,
             max_epochs             = 500,
-            number_trials          = 4,
-            validation_type        = {'method': 'kfold', 'k': 5}, # validation_type={'method': 'holdout'},
+            number_trials          = 5,
+            validation_type        = {'method': 'holdout'},#{'method': 'kfold', 'k': 5}, # validation_type={'method': 'holdout'},
 
             lr                     = [0.1, 0.2, 0.4, 0.6, 0.8], # 0.6
             lr_decay               = [None], #[(0.0, 50)],
@@ -89,7 +89,7 @@ if __name__ == '__main__':
 
         after_grid_search_time = time.perf_counter()
 
-        best_i = argmin(lambda t: t['val_error'], best_results['trials'])
+        best_i = argmin(lambda t: t['best_val_error'], best_results['trials'])
 
         best_epoch = best_results["trials"][best_i]["best_epoch"]
 

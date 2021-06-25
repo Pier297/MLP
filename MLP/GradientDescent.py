@@ -25,7 +25,7 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
             norm += np.linalg.norm(nw) + np.linalg.norm(nb)
         return norm
 
-    target_domain              = config['target_domain']
+    target_domain              = config['target_domain'] if config['target_domain'] is not None else None
     loss_function              = loss_function_from_name(config['loss_function_name'])
     lr                         = config['lr']
     (lr_final, lr_final_epoch) = config['lr_decay'] if config['lr_decay'] is not None else (lr, 0)
@@ -101,15 +101,15 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
 
         train_outputs          = predict(model, train_inputs)
         current_train_error    = loss_function.eval(train_outputs, train_target)
-        current_train_accuracy = accuracy(train_outputs, train_target, target_domain)
+        current_train_accuracy = accuracy(train_outputs, train_target, target_domain) if target_domain is not None else inf
 
         val_outputs            = predict(model, val_inputs)                       if validation is not None else None
         current_val_error      = loss_function.eval(val_outputs, val_target)      if validation is not None else inf
-        current_val_accuracy   = accuracy(val_outputs, val_target, target_domain) if validation is not None else inf
+        current_val_accuracy   = accuracy(val_outputs, val_target, target_domain) if validation is not None and target_domain is not None else inf
 
         watch_outputs          = predict(model, watch_inputs)                         if watching is not None else None
         current_watch_error    = loss_function.eval(watch_outputs, watch_target)      if watching is not None else inf
-        current_watch_accuracy = accuracy(watch_outputs, watch_target, target_domain) if watching is not None else inf
+        current_watch_accuracy = accuracy(watch_outputs, watch_target, target_domain) if watching is not None and target_domain is not None  else inf
 
         train_errors.append(current_train_error)
         train_accuracies.append(current_train_accuracy)

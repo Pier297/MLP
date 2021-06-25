@@ -1,11 +1,25 @@
 import matplotlib.pyplot as plt
 from MLP.Utils import argmin
 
-def plot_final_training_with_test_error(train_errors, test_errors, show=False, name: str = 'MSE', file_name: str = ''):
+def end_plotting():
+    plt.show()
+
+def plot_compare_outputs(train_output, watch_output, name: str):
     plt.figure()
-    plt.plot(train_errors, color='blue', label='Train error')
-    if test_errors != []:
-        plt.plot(test_errors, color='green', label='Test error')
+    plt.title('Scatter outputs: ' + name)
+    plt.scatter(train_output[:,0], train_output[:,1], marker='o', s=1, color='blue')
+    plt.scatter(watch_output[:,0], watch_output[:,1], marker='o', s=1, color='green')
+    plt.draw()
+
+def plot_final_training_with_test_error(train_errors, watch_errors, name: str = 'MSE', file_name: str = '', skip_first_elements=0):
+    plt.figure()
+    
+    train_errors_c = train_errors[skip_first_elements:]
+    watch_errors_c = watch_errors[skip_first_elements:]
+    
+    plt.plot(train_errors_c, color='blue', label='Train error')
+    if watch_errors != []:
+        plt.plot(watch_errors_c, color='green', label='Test error')
     plt.legend()
     plt.title('Final training: ' + name)
     plt.xlabel('iteration')
@@ -13,10 +27,8 @@ def plot_final_training_with_test_error(train_errors, test_errors, show=False, n
     plt.draw()
     if file_name != '':
         plt.savefig(file_name)
-    if show:
-        plt.show()
 
-def plot_final_training_with_test_accuracies(train_accuracies, test_accuracies=[], show=False, file_name: str = ''):
+def plot_final_training_with_test_accuracies(train_accuracies, test_accuracies=[], file_name: str = ''):
     plt.figure()
     plt.plot(train_accuracies, color='blue', label='Train accuracy')
     if test_accuracies != []:
@@ -28,8 +40,6 @@ def plot_final_training_with_test_accuracies(train_accuracies, test_accuracies=[
     plt.draw()
     if file_name != '':
         plt.savefig(file_name)
-    if show:
-        plt.show()
 
 def plot_weights_norms(weights_norms, title: str, file_name: str = ''):
     plt.figure()
@@ -53,7 +63,7 @@ def plot_gradient_norms(gradient_norms, title: str, file_name: str = ''):
         plt.savefig(file_name)
 
 def find_best(trials):
-    return argmin(lambda t: t['val_error'], trials)
+    return argmin(lambda t: t['best_val_error'], trials)
 
 
 def plot_model(train, vals, label1, label2, *args, **kwargs):
@@ -62,7 +72,7 @@ def plot_model(train, vals, label1, label2, *args, **kwargs):
     if vals != []:
         plt.plot(vals, label=label2, color='orange', *args, **kwargs)
 
-def plot_model_selection_learning_curves(trials, highlight_best=True, name='MSE', show=False, file_name=''):
+def plot_model_selection_learning_curves(trials, highlight_best=True, name='MSE', file_name=''):
     plt.figure()
 
     best_i = find_best(trials) if highlight_best else -1
@@ -79,11 +89,8 @@ def plot_model_selection_learning_curves(trials, highlight_best=True, name='MSE'
     plt.draw()
     if file_name != '':
         plt.savefig(file_name)
-    if show:
-        plt.show()
 
-
-def plot_model_selection_accuracies(trials, highlight_best=True, name='Accuracy', show=False, file_name=''):
+def plot_model_selection_accuracies(trials, highlight_best=True, name='Accuracy', file_name=''):
     plt.figure()
 
     best_i = find_best(trials) if highlight_best else -1
@@ -100,5 +107,3 @@ def plot_model_selection_accuracies(trials, highlight_best=True, name='Accuracy'
     plt.draw()
     if file_name != '':
         plt.savefig(file_name)
-    if show:
-        plt.show()

@@ -9,8 +9,7 @@ def holdout_hyperconfiguration(conf, training, validation, trial_subseed):
     return gradient_descent(model, training, validation, conf)
 
 
-def pad_data_constantly(target_size, data_list):
-    data = np.array(data_list)
+def pad_data_constantly(target_size, data):
     return np.concatenate((data, np.full((target_size - data.shape[0],), data[-1])))
 
 def average_zip(results):
@@ -24,7 +23,7 @@ def average_uneven_length_results(results):
 def combine_fold_results(folds):
     get_all_np = lambda k, d: list(map(lambda x: np.array(x[k]), d))
     return {'best_val_error':   np.average(get_all_np('best_val_error', folds)),
-            'best_epoch':       np.average(get_all_np('best_epoch', folds)),
+            'best_epoch':       int(np.average(get_all_np('best_epoch', folds))),
             'train_errors':     average_uneven_length_results(get_all_np('train_errors',     folds)),
             'train_accuracies': average_uneven_length_results(get_all_np('train_accuracies', folds)),
             'val_errors':       average_uneven_length_results(get_all_np('val_errors',       folds)),

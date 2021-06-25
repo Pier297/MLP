@@ -9,11 +9,15 @@ def Sigmoid():
     der = lambda x: sigm(x) * (1 - sigm(x))
     return (sigm, der)
 
+def Linear():
+    return (lambda x: x, lambda _: 1)
 
 def activation_function_from_name(name):
     if name == 'tanh':
         return Tanh()
     elif name == 'sigmoid':
         return Sigmoid()
+    elif name == 'linear':
+        return Linear()
     else:
         raise ValueError("Invalid activation function name.")

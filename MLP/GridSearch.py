@@ -56,12 +56,14 @@ def holdout_grid_search(hyperparameters, training, n_workers):
     def split_train_set(dataset_unshuffled, val_prop):
         # Shuffle the data
         dataset = np.random.permutation(dataset_unshuffled)
-        val_size = int(val_prop * dataset)
+        val_size = int(val_prop * dataset.shape[0])
         train_set = dataset[val_size:][:]
         val_set = dataset[:val_size][:]
         return (train_set, val_set)
     # Split the dataset into train and validation set.
     (train_set, val_set) = split_train_set(training, hyperparameters[0]['validation_percentage'])
+    print(train_set.shape)
+    print('val', val_set.shape)
     with Pool(processes=n_workers) as pool:
         return pool.map(call_holdout, enumerate(zip(hyperparameters, repeat((train_set, val_set)))))
 
