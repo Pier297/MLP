@@ -12,7 +12,7 @@ import random
 import os
 from math import ceil
 
-global_seed = 2 
+global_seed = 2
 random.seed(global_seed)
 np.random.seed(global_seed)
 
@@ -59,28 +59,19 @@ if __name__ == '__main__':
         validation_percentage  = 0.20, # percentage of data into validation, remaining into training
         mini_batch_percentage  = 1,
         max_unlucky_epochs     = 20,
-        max_epochs             = 500,
+        max_epochs             = 300,
         number_trials          = 1,
         validation_type        = {'method': 'holdout'},#{'method': 'kfold', 'k': 5}, # validation_type={'method': 'holdout'},
         target_domain          = None,
         lr                     = [0.01], # 0.6
         lr_decay               = None,#[(0.01*1e-1, 200)], #[(0.0, 50)],
-        l2                     = [1e-4],
+        l2                     = [0.0001],
         momentum               = [0],
         adam_decay_rate_1      = [0.99],
         adam_decay_rate_2      = [0.999],
-        hidden_layers          = [([('tanh',50), ('tanh', 50)],'linear')],
+        hidden_layers          = [([('tanh',100), ('tanh', 100)],'linear')],
         print_stats            = False
     )
-
-    # seed 2
-    # {'in_dimension': 17, 'out_dimension': 1, 'target_domain': (0, 1), 'validation_type': {'method': 'kfold', 'k': 5},
-    # 'tion_nametion': 'Cross Entropy', 'lr': 0.4, 'l2': 0.001, 'momentum': 0.6, 'hidden_layers': ([('tanh', 3)], 'sigmoid'),
-    # 'mini_batch_percentage': 0.8, 'mini_batch_percentage': 1}
-    # fa crashare
-    # {'in_dimension': 17, 'out_dimension': 1, 'target_domain': (0, 1), 'validation_type': {'method': 'kfold', 'k': 5},
-    # 'loss_function': 'Cross Entropy', 'lr': 0.6, 'l2': 0.001, 'momentum': 0.9, 'hidden_layers': ([('tanh', 3)], 'sigmoid'),
-    # 'mini_batch_percentage': 0.8, 'mini_batch_percentage': 1}
 
     # Run the grid-search which returns a list of dictionaries each containing
     # the best validation error found by early-stopping, the epochs where the val. error was the lowest and
@@ -99,7 +90,7 @@ if __name__ == '__main__':
     final_training_epochs = ceil(average(list(map(lambda x: x["best_epoch"], best_results["trials"]))))
 
     # --- Retraining: define a new model with the best conf. and train on all the data ---
-   
+
     final_hyperparameters = {**best_hyperparameters,
                              'max_epochs':      final_training_epochs,
                              'seed':            generate_seed(),
@@ -110,7 +101,7 @@ if __name__ == '__main__':
     final_results = gradient_descent(model, normalized_training, None, final_hyperparameters, watching=normalized_test, watching_normalization_statistics=training_statistics)
 
     # assert False
-    # CAREFUL: we start dealing here with the test set! 
+    # CAREFUL: we start dealing here with the test set!
 
     train_output = denormalize_data(predict(model, normalized_training[:, :model["in_dimension"]]), training_statistics[model["in_dimension"]:])
     test_output  = denormalize_data(predict(model, normalized_test    [:, :model["in_dimension"]]), training_statistics[model["in_dimension"]:])
@@ -120,7 +111,6 @@ if __name__ == '__main__':
     print(f'Final model seed                     = {final_hyperparameters["seed"]}')
     print(f'Hyperparameters searched             = {len(hyperparameters)}')
     print(f'Best grid search validation epoch    = {final_training_epochs + 1}')
-    print('---')
     print(f'Best grid search validation error    = {best_results["val_error"]}')
     print(f'Final retrained MEE on training      = {mean_euclidean_error(train_output, train_target)}')
     # CAREFUL! UNCOMMENT ONLY AT THE END OF THE ENTIRE EXPERIMENT
@@ -140,8 +130,8 @@ if __name__ == '__main__':
     plot_final_training_with_test_error(final_results['train_errors'],final_results['watch_errors'],name=best_hyperparameters['loss_function_name'], file_name=f'MLP/cup/plots/final_errors.png',
                skip_first_elements=0)
 
-    plot_compare_outputs(train_output, train_target, name='Final training output comparison')
+    plot_compare_outputs(train_output, train_target, name='Final training output comparison', file_name='MLP/cup/plots/scatter_train.png')
 
-    plot_compare_outputs(test_output, test_target, name='Final test output comparison')
+    plot_compare_outputs(test_output, test_target, name='Final test output comparison', file_name='MLP/cup/plots/scatter_test.png')
 
     end_plotting()

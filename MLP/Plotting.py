@@ -5,26 +5,28 @@ from MLP.Utils import argmin
 def end_plotting():
     plt.show()
 
-def plot_compare_outputs(train_output, watch_output, name: str):
+def plot_compare_outputs(train_output, watch_output, name: str, file_name: str = ''):
     plt.figure()
 
     fig, ax = plt.subplots()
 
     tupleify = lambda x: (x[0], x[1])
 
-    ax.add_collection(LineCollection([[tupleify(train_output[i]), tupleify(watch_output[i])] for i in range(len(train_output))]))
+    ax.add_collection(LineCollection([[tupleify(train_output[i]), tupleify(watch_output[i])] for i in range(len(train_output))], linewidths=[0.2 for _ in range(len(train_output))]))
 
-    plt.title('Scatter outputs: ' + name)
+    plt.title('Scatter outputs with output-target lines: ' + name)
     plt.scatter(train_output[:,0], train_output[:,1], marker='o', s=1, color='blue')
     plt.scatter(watch_output[:,0], watch_output[:,1], marker='o', s=1, color='green')
     plt.draw()
+    if file_name != '':
+        plt.savefig(file_name)
 
 def plot_final_training_with_test_error(train_errors, watch_errors, name: str = 'MSE', file_name: str = '', skip_first_elements=0):
     plt.figure()
-    
+
     train_errors_c = train_errors[skip_first_elements:]
     watch_errors_c = watch_errors[skip_first_elements:]
-    
+
     plt.plot(train_errors_c, color='blue', label='Train error')
     if watch_errors != []:
         plt.plot(watch_errors_c, color='green', label='Test error')

@@ -25,13 +25,13 @@ def generate_seed():
     return np.random.randint(2**16-1)
 
 def combine_subseed(ss1, ss2):
-    return (2**16 * ss1) + ss2 
+    return (2**16 * ss1) + ss2
 
 def change_seed(d, subseed=None):
     return {**d, "seed": generate_seed() if subseed is None else d['seed'] + subseed}
 
 def get_data_statistics(X):
-    return {'avg': np.average(X), 'std': np.std(X)}
+    return {'avg': 0, 'std': 1}
 
 def normalize(X, stats):
     return (X - stats['avg']) / stats['std']
