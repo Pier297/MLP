@@ -48,18 +48,18 @@ if __name__ == '__main__':
         out_dimension          = out_dimension,
         validation_percentage  = 0.20, # percentage of data into validation, remaining into training
         mini_batch_percentage  = 1,
-        max_unlucky_epochs     = 20,
-        max_epochs             = 300,
-        number_trials          = 1,
+        max_unlucky_epochs     = 50,
+        max_epochs             = 2000,
+        number_trials          = 3,
         validation_type        = {'method': 'holdout'},#{'method': 'kfold', 'k': 5}, # validation_type={'method': 'holdout'},
         target_domain          = None,
-        lr                     = [0.01], # 0.6
+        lr                     = [0.001, 0.005, 0.01, 0.05, 0.1, 0.2], # 0.6
         lr_decay               = None,#[(0.01*1e-1, 200)], #[(0.0, 50)],
-        l2                     = [0.0001],
-        momentum               = [0],
-        adam_decay_rate_1      = [0.99],
-        adam_decay_rate_2      = [0.999],
-        hidden_layers          = [([('tanh',100), ('tanh', 100)],'linear')],
+        l2                     = [1e-6, 1e-5, 1e-4, 1e-2],
+        momentum               = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.9],
+        adam_decay_rate_1      = [0.9, 0.7],
+        adam_decay_rate_2      = [0.999, 0.777],
+        hidden_layers          = [([('tanh',5), ('tanh', 5)],'linear'), ([('tanh',10), ('tanh', 10)],'linear'), ([('tanh',15), ('tanh', 15)],'linear')],
         print_stats            = False
     )
 
