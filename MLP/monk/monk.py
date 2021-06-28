@@ -17,7 +17,7 @@ np.random.seed(global_seed)
 
 monks = [2] # [1, 2, 3]
 
-np.seterr(all='raise')
+#np.seterr(all='raise')
 
 if __name__ == '__main__':
 

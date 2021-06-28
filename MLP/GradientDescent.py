@@ -158,7 +158,6 @@ def gradient_descent_step(model, epoch, prev_delta_W, prev_delta_b, nabla_W, nab
     lr = (1.0 - alpha) * lr_initial + alpha * lr_final
 
     for i in range(len(nabla_W)):
-
         prev_delta_W[i] = momentum * prev_delta_W[i] - lr * nabla_W[i]
         prev_delta_b[i] = momentum * prev_delta_b[i] - lr * nabla_b[i]
 

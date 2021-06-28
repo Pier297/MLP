@@ -6,7 +6,7 @@ def end_plotting():
     plt.show()
 
 def plot_compare_outputs(train_output, watch_output, name: str, file_name: str = ''):
-    plt.figure()
+    #plt.figure()
 
     fig, ax = plt.subplots()
 
@@ -15,8 +15,9 @@ def plot_compare_outputs(train_output, watch_output, name: str, file_name: str =
     ax.add_collection(LineCollection([[tupleify(train_output[i]), tupleify(watch_output[i])] for i in range(len(train_output))], linewidths=[0.2 for _ in range(len(train_output))]))
 
     plt.title('Scatter outputs with output-target lines: ' + name)
-    plt.scatter(train_output[:,0], train_output[:,1], marker='o', s=1, color='blue')
-    plt.scatter(watch_output[:,0], watch_output[:,1], marker='o', s=1, color='green')
+    plt.scatter(train_output[:,0], train_output[:,1], marker='o', s=1, color='blue', label='Model outputs')
+    plt.scatter(watch_output[:,0], watch_output[:,1], marker='o', s=1, color='green', label='True Data')
+    plt.legend()
     plt.draw()
     if file_name != '':
         plt.savefig(file_name)
