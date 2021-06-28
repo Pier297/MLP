@@ -10,10 +10,9 @@ perm = randperm(size(inputs, 1));
 inputs = inputs(perm, :)';
 outputs = outputs(perm, :)';
 
-net = feedforwardnet([16, 16],'trainbfg');
+net = feedforwardnet([500],'trainbfg');
 net.layers{1}.transferFcn = 'tansig';
-net.layers{2}.transferFcn = 'tansig';
-net.layers{3}.transferFcn = 'purelin';
+net.layers{2}.transferFcn = 'purelin';
 
 % net.trainParam.lr = 0.00003; %learning rate for gradient descent alg.
 % net.trainParam.mc = 0.5; %momentum constant

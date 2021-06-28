@@ -34,12 +34,17 @@ def trialize(number_trials, validation_method):
 
 def call_holdout(args):
     i, (conf, (train_set, val_set)) = args
-    before = time.perf_counter()
-    results = trialize(conf['number_trials'],
-                       lambda subseed: holdout_hyperconfiguration(conf, train_set, val_set, subseed))
-    after = time.perf_counter()
-    print(f"Holdout finished (VE: {results['val_error']}, avg trial best epoch: {int(average(list(map(lambda x: x['best_epoch'], results['trials']))))}), time (s): {after-before}")
-    return results
+    try:
+        before = time.perf_counter()
+        results = trialize(conf['number_trials'],
+                        lambda subseed: holdout_hyperconfiguration(conf, train_set, val_set, subseed))
+        after = time.perf_counter()
+        print(f"Holdout finished (VE: {results['val_error']}, avg trial best epoch: {int(average(list(map(lambda x: x['best_epoch'], results['trials']))))}), time (s): {after-before}")
+        return results
+    except Exception:
+        print('Got exception with conf:')
+        print(conf)
+        raise 'Stop.'
 
 def call_kfold(args):
     i, (conf, (folded_dataset)) = args

@@ -3,7 +3,7 @@ from MLP.GradientDescent import gradient_descent
 from MLP.Plotting import *
 from MLP.LossFunctions import mean_euclidean_error
 from MLP.GridSearch import generate_hyperparameters, grid_search
-from MLP.Utils import argmin, generate_seed, average
+from MLP.Utils import argmin, generate_seed, average, change_seed
 from MLP.cup.load_cup import load_cup
 from multiprocessing import cpu_count
 import numpy as np
@@ -69,7 +69,9 @@ if __name__ == '__main__':
 
     before_grid_search_time = time.perf_counter()
 
-    best_hyperparameters, best_results = grid_search(hyperparameters, training, cpu_count())
+    print(len(hyperparameters))
+
+    """ best_hyperparameters, best_results = grid_search(hyperparameters, training, cpu_count() - 1) # TODO: Remove the -1
 
     after_grid_search_time = time.perf_counter()
 
@@ -77,20 +79,22 @@ if __name__ == '__main__':
     best_trial = argmin(lambda t: t['best_val_error'], best_results['trials'])
 
     # Take the average between the best epochs of each trial
-    final_training_epochs = ceil(average(list(map(lambda x: x["best_epoch"], best_results["trials"]))))
+    final_training_epochs = ceil(average(list(map(lambda x: x["best_epoch"], best_results["trials"])))) """
 
     # --- Retraining: define a new model with the best conf. and train on all the data ---
 
-    final_hyperparameters = {**best_hyperparameters,
+    """ final_hyperparameters = {**best_hyperparameters,
                              'max_epochs':  final_training_epochs,
                              'seed':        generate_seed(),
-                             'print_stats': True}
+                             'print_stats': True} """
 
-    model = Sequential(final_hyperparameters)
+    final_hyperparameters = {'loss_function_name': 'MSE', 'optimizer': 'SGD', 'in_dimension': 10, 'out_dimension': 2, 'validation_percentage': 0.2, 'mini_batch_percentage': 1, 'max_unlucky_epochs': 50, 'max_epochs': 2000, 'number_trials': 3, 'validation_type': {'method': 'holdout'}, 'target_domain': None, 'lr': 0.2, 'lr_decay': None, 'l2': 0.0001, 'momentum': 0.1, 'adam_decay_rate_1': 0.7, 'adam_decay_rate_2': 0.999, 'hidden_layers': ([('tanh', 15), ('tanh', 15)], 'linear'), 'print_stats': False, 'seed': 32955}
+
+    model = Sequential(change_seed(final_hyperparameters, subseed=3))
 
     final_results = gradient_descent(model, training, None, final_hyperparameters, watching=test)
 
-    # assert False
+    assert False
     # CAREFUL: we start dealing here with the test set!
 
     train_output = predict(model, train_input)
