@@ -40,8 +40,7 @@ def kfold_hyperconfiguration(conf, folded_dataset, trial_subseed):
         model = Sequential(change_seed(conf, subseed=combine_subseed(f, trial_subseed)))
 
         validation = folded_dataset[f]
-        training_list = folded_dataset[:f] + folded_dataset[f + 1:]
-        training = np.concatenate(training_list)
+        training = np.concatenate(folded_dataset[:f] + folded_dataset[f + 1:])
 
         results = gradient_descent(model, training, validation, conf)
         folds.append(results)

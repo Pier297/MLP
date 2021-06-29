@@ -14,6 +14,9 @@ def argmin(f, v):
         raise 'Empty list passed to argmin'
     return minimum_i
 
+def get_trials_best_epoch_property(trials, k):
+    return np.array([t[k][t['best_epoch']] for t in trials])
+
 def average(s):
     return sum(s) / len(s)
 

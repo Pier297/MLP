@@ -13,10 +13,13 @@ class MSE:
         self.name = 'MSE'
 
     def eval(self, output, target):
-        return np.sum((target - output)**2) / (2 * output.shape[0])
+        return np.average((target - output)**2)
+    
+    def std(self, output, target):
+        return np.std((target - output)**2)
 
     def gradient(self, last_layer_output, target):
-        return last_layer_output - target
+        return 2 * (last_layer_output - target)
 
 EPSILON = 1e-9
 
@@ -25,7 +28,10 @@ class CrossEntropy:
         self.name = 'Cross Entropy'
 
     def eval(self, output, target):
-        return -np.sum(target * np.log(output + EPSILON) + (1 - target) * np.log(1 - output + EPSILON)) / output.shape[0]
+        return -np.average(target * np.log(output + EPSILON) + (1 - target) * np.log(1 - output + EPSILON))
+
+    def std(self, output, target):
+        return np.std(target * np.log(output + EPSILON) + (1 - target) * np.log(1 - output + EPSILON))
 
     def gradient(self, last_layer_output, target):
         return (target - 1) / ((last_layer_output - 1) + EPSILON) - target/(last_layer_output + EPSILON)
@@ -47,3 +53,10 @@ def mean_euclidean_error(output, target):
     y1_target = target[:, 0]
     y2_target = target[:, 1]
     return np.average(np.sqrt((y1_target - y1_output)**2 + (y2_target - y2_output)**2))
+
+def mean_euclidean_error_std(output, target):
+    y1_output = output[:, 0]
+    y2_output = output[:, 1]
+    y1_target = target[:, 0]
+    y2_target = target[:, 1]
+    return np.average(np.sqrt((y1_target - y1_output)**2 + (y2_target - y2_output)**2))    

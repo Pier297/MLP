@@ -55,23 +55,23 @@ if __name__ == '__main__':
 
     hyperparameters1 = {
         'loss_function_name'     : "MSE",
-        'optimizer'              : "SGD", #optimizer = "SGD",
+        'optimizer'              : "adam", #optimizer : "SGD",
         'in_dimension'           : in_dimension,
         'out_dimension'          : out_dimension,
         'validation_percentage'  : 0.20, # percentage of data into validation, remaining into training
-        'mini_batch_percentage'  : 1,
-        'max_unlucky_epochs'     : 400,
-        'max_epochs'             : 4000,
-        'number_trials'          : 1,
-        'validation_type'        : {'method': 'kfold', 'k': 5}, # validation_type={'method': 'holdout'},
+        'mini_batch_percentage'  : 0.3,
+        'max_unlucky_epochs'     : 1000,
+        'max_epochs'             : 2000,
+        'number_trials'          : 2,
+        'validation_type'        : {'method': 'kfold', 'k': 5}, # validation_type:{'method': 'holdout'},
         'target_domain'          : None,
-        'lr'                     : [0.2], # 0.6
+        'lr'                     : [0.0001, 0.0005, 0.0075, 0.05, 0.1], # 0.6
         'lr_decay'               : None,#[(0.01*1e-1, 200)], #[(0.0, 50)],
-        'l2'                     : [0],
-        'momentum'               : [0.0],
+        'l2'                     : [0, 1e-6],
+        'momentum'               : [0],
         'adam_decay_rate_1'      : [0.9],
         'adam_decay_rate_2'      : [0.999],
-        'hidden_layers'          : [([('tanh',20), ('tanh',20)],'linear')],
+        'hidden_layers'          : [([('softplus',32), ('softplus', 32)],'linear')],
         'print_stats'            : False
     }
     hyperparameters1_stream = generate_hyperparameters(hyperparameters1)
@@ -83,20 +83,21 @@ if __name__ == '__main__':
 
     # --- Refine the second Grid Search using a second Random Search ---
 
-    #generations = 10
-    #hyperparameters2 = {**best_hyperconfiguration1,
-    #    'lr':       gen_range(best_hyperconfiguration1['lr'],       hyperparameters1['lr'],       method='uniform'),
-    #    #'momentum': gen_range(best_hyperconfiguration1['momentum'], hyperparameters1['momentum'], method='uniform')
-    #}
-    #hyperparameters2_stream = generate_hyperparameters_random(hyperparameters2, generations)
+    generations = 30
+    hyperparameters2 = {**best_hyperconfiguration1,
+        'lr':       gen_range(best_hyperconfiguration1['lr'],       hyperparameters1['lr'],       method='uniform'),
+        #'momentum': gen_range(best_hyperconfiguration1['momentum'], hyperparameters1['momentum'], method='uniform')
+    }
 
-    #print(f'First grid search over: {generations} configurations.')
-    #before_grid_search_time2                = time.perf_counter()
-    #best_hyperconfiguration2, best_results2 = grid_search(hyperparameters2_stream, n_training)
-    #after_grid_search_time2                 = time.perf_counter()
+    hyperparameters2_stream = generate_hyperparameters_random(hyperparameters2, generations)
 
-    best_results2 = best_results1
-    best_hyperconfiguration2 = best_hyperconfiguration1
+    print(f'Second grid search over: {generations} configurations.')
+    before_grid_search_time2                = time.perf_counter()
+    best_hyperconfiguration2, best_results2 = grid_search(hyperparameters2_stream, n_training)
+    after_grid_search_time2                 = time.perf_counter()
+
+    #best_results2 = best_results1
+    #best_hyperconfiguration2 = best_hyperconfiguration1
 
     # --- Retraining with the final model ---
 
@@ -120,14 +121,14 @@ if __name__ == '__main__':
     print()
     print(f'Final model seed                     = {final_hyperparameters["seed"]}')
     print(f'Hyperparameters searched (1)         = {len(hyperparameters1)}')
-    #print(f'Hyperparameters searched (2)         = {len(hyperparameters2)}')
+    print(f'Hyperparameters searched (2)         = {len(hyperparameters2)}')
     print(f'Best grid search validation epoch    = {training_epochs + 1} epochs')
     print(f'Best grid search validation error    = (Norm. MSE) {best_results2["val_error"]}')
     print(f'Final retrained MEE on training      = (MEE)       {mean_euclidean_error(train_output, train_target)}')
     # CAREFUL! UNCOMMENT ONLY AT THE END OF THE ENTIRE EXPERIMENT
     print(f'Final retrained MEE on test          = (MEE)       {mean_euclidean_error(test_output, test_target)}')
     print(f'Grid search total time (s) (1)      = {(after_grid_search_time1 - before_grid_search_time1)} seconds')
-    #print(f'Grid search total time (s) (2)      = {(after_grid_search_time2 - before_grid_search_time2)} seconds')
+    print(f'Grid search total time (s) (2)      = {(after_grid_search_time2 - before_grid_search_time2)} seconds')
 
     print("\nFinal hyperparameters\n\n", final_hyperparameters)
 

@@ -30,11 +30,11 @@ def plot_final_training_with_test_error(train_errors, watch_errors, name: str = 
 
     plt.plot(train_errors_c, color='blue', label='Train error')
     if watch_errors != []:
-        plt.plot(watch_errors_c, color='green', label='Test error')
+        plt.plot(watch_errors_c, color='green', label='Test error', linestyle='dashdot')
     plt.legend()
     plt.title('Final training: ' + name)
-    plt.xlabel('iteration')
-    plt.ylabel('errors')
+    plt.xlabel('Epoch')
+    plt.ylabel('Error')
     plt.draw()
     if file_name != '':
         plt.savefig(file_name)
@@ -43,11 +43,11 @@ def plot_final_training_with_test_accuracies(train_accuracies, test_accuracies=[
     plt.figure()
     plt.plot(train_accuracies, color='blue', label='Train accuracy')
     if test_accuracies != []:
-        plt.plot(test_accuracies, color='green', label='Test accuracy')
+        plt.plot(test_accuracies, color='green', label='Test accuracy', linestyle='dashdot')
     plt.legend()
     plt.title('Final Training: Classification accuracy')
-    plt.xlabel('iteration')
-    plt.ylabel('accuracy')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
     plt.draw()
     if file_name != '':
         plt.savefig(file_name)
@@ -57,8 +57,8 @@ def plot_weights_norms(weights_norms, title: str, file_name: str = ''):
     plt.plot(weights_norms, label='Weights norm')
     plt.legend()
     plt.title(title)
-    plt.xlabel('iteration')
-    plt.ylabel('norm')
+    plt.xlabel('Epoch')
+    plt.ylabel('Norm')
     plt.draw()
     if file_name != '':
         plt.savefig(file_name)
@@ -68,20 +68,19 @@ def plot_gradient_norms(gradient_norms, title: str, file_name: str = ''):
     plt.plot(gradient_norms, label='Gradient norm')
     plt.legend()
     plt.title(title)
-    plt.xlabel('iteration')
-    plt.ylabel('norm')
+    plt.xlabel('Epoch')
+    plt.ylabel('Norm')
     if file_name != '':
         plt.savefig(file_name)
 
 def find_best(trials):
     return argmin(lambda t: t['best_val_error'], trials)
 
-
 def plot_model(train, vals, label1, label2, *args, **kwargs):
     if train != []:
         plt.plot(train, label=label1, color='blue', *args, **kwargs)
     if vals != []:
-        plt.plot(vals, label=label2, color='orange', *args, **kwargs)
+        plt.plot(vals, label=label2, color='orange', linestyle='dashed', *args, **kwargs)
 
 def plot_model_selection_learning_curves(trials, highlight_best=True, name='MSE', file_name=''):
     plt.figure()
@@ -91,12 +90,12 @@ def plot_model_selection_learning_curves(trials, highlight_best=True, name='MSE'
     for i, results in enumerate(trials):
         plot_model(results['train_errors'], results['val_errors'],
                    'Training error' if i == best_i else '', 'Validation error' if i == best_i else '',
-                   alpha=1.0 if i == best_i else 0.1)
+                   alpha=1.0 if i == best_i else 0.4)
 
     plt.legend()
     plt.title(name)
-    plt.xlabel('iteration')
-    plt.ylabel('errors')
+    plt.xlabel('Epoch')
+    plt.ylabel('Error')
     plt.draw()
     if file_name != '':
         plt.savefig(file_name)
@@ -113,8 +112,8 @@ def plot_model_selection_accuracies(trials, highlight_best=True, name='Accuracy'
 
     plt.legend()
     plt.title(name)
-    plt.xlabel('iteration')
-    plt.ylabel('accuracies')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
     plt.draw()
     if file_name != '':
         plt.savefig(file_name)

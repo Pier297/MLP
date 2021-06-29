@@ -14,9 +14,9 @@ def gen_range(chosen, space, method='uniform'):
     if len(space) == 1:
         (a, b) = (space[0] - space[0]/2, space[0] + space[0]/2)
     elif i == 0:
-        (a, b) = (space[0] - space[1], space[1])
+        (a, b) = (space[0] - (space[1] - space[0]), space[1])
     elif i == len(space)-1:
-        (a, b) = (space[-2], space[-1] + space[-2])
+        (a, b) = (space[-2], space[-1] + (space[-1] - space[-2]))
     else:
         (a, b) = (space[i-1], space[i+1])
 
