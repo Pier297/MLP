@@ -4,7 +4,7 @@ from MLP.Plotting import *
 from MLP.LossFunctions import mean_euclidean_error
 from MLP.GridSearch import generate_hyperparameters, grid_search
 from MLP.RandomSearch import generate_hyperparameters_random, gen_range
-from MLP.Utils import argmin, generate_seed, average, change_seed
+from MLP.Utils import *
 from MLP.cup.load_cup import load_cup
 from multiprocessing import cpu_count
 import numpy as np
@@ -13,7 +13,7 @@ import random
 import os
 from math import ceil
 
-global_seed = 2
+global_seed = 0
 random.seed(global_seed)
 np.random.seed(global_seed)
 
@@ -29,15 +29,27 @@ if __name__ == '__main__':
         pass
 
     # Get training and internal test set
+
     (training, test) = load_cup()
 
     (in_dimension, out_dimension) = (10, 2)
 
-    train_target = training[:, in_dimension:]
     train_input  = training[:, :in_dimension]
+    train_target = training[:, in_dimension:]
 
-    test_target  = test[:, in_dimension:]
     test_input   = test[:, :in_dimension]
+    test_target  = test[:, in_dimension:]
+
+    training_statistics = data_statistics(training)
+
+    n_training = normalize(training, training_statistics)
+    n_test     = normalize(test,     training_statistics)
+
+    n_train_input  = normalize(training[:, :in_dimension], training_statistics[:in_dimension])
+    n_train_target = normalize(training[:, in_dimension:], training_statistics[in_dimension:])
+
+    n_test_input  = normalize(test[:, :in_dimension], training_statistics[:in_dimension])
+    n_test_target = normalize(test[:, in_dimension:], training_statistics[in_dimension:])
 
     # --- First Grid Search ---
 
@@ -49,14 +61,14 @@ if __name__ == '__main__':
         'validation_percentage'  : 0.20, # percentage of data into validation, remaining into training
         'mini_batch_percentage'  : 1,
         'max_unlucky_epochs'     : 400,
-        'max_epochs'             : 1000,
+        'max_epochs'             : 4000,
         'number_trials'          : 1,
         'validation_type'        : {'method': 'kfold', 'k': 5}, # validation_type={'method': 'holdout'},
         'target_domain'          : None,
-        'lr'                     : [6e-3], # 0.6
+        'lr'                     : [0.2], # 0.6
         'lr_decay'               : None,#[(0.01*1e-1, 200)], #[(0.0, 50)],
         'l2'                     : [0],
-        'momentum'               : [0.6],
+        'momentum'               : [0.0],
         'adam_decay_rate_1'      : [0.9],
         'adam_decay_rate_2'      : [0.999],
         'hidden_layers'          : [([('tanh',20), ('tanh',20)],'linear')],
@@ -66,7 +78,7 @@ if __name__ == '__main__':
 
     print(f'First grid search over: {len(hyperparameters1_stream)} configurations.')
     before_grid_search_time1                = time.perf_counter()
-    best_hyperconfiguration1, best_results1 = grid_search(hyperparameters1_stream, training)
+    best_hyperconfiguration1, best_results1 = grid_search(hyperparameters1_stream, n_training)
     after_grid_search_time1                 = time.perf_counter()
 
     # --- Refine the second Grid Search using a second Random Search ---
@@ -80,7 +92,7 @@ if __name__ == '__main__':
 
     #print(f'First grid search over: {generations} configurations.')
     #before_grid_search_time2                = time.perf_counter()
-    #best_hyperconfiguration2, best_results2 = grid_search(hyperparameters2_stream, training)
+    #best_hyperconfiguration2, best_results2 = grid_search(hyperparameters2_stream, n_training)
     #after_grid_search_time2                 = time.perf_counter()
 
     best_results2 = best_results1
@@ -97,12 +109,12 @@ if __name__ == '__main__':
 
     model = Sequential(final_hyperparameters)
 
-    final_results = gradient_descent(model, training, test, final_hyperparameters)
+    final_results = gradient_descent(model, n_training, None, final_hyperparameters, watching=n_test)
 
     # --- Predicting and plotting ---
 
-    train_output = predict(model, train_input)
-    test_output  = predict(model, test_input)
+    train_output = denormalize(predict(model, n_train_input), training_statistics[in_dimension:])
+    test_output  = denormalize(predict(model, n_test_input),  training_statistics[in_dimension:])
 
     print("\n")
     print()
@@ -110,10 +122,10 @@ if __name__ == '__main__':
     print(f'Hyperparameters searched (1)         = {len(hyperparameters1)}')
     #print(f'Hyperparameters searched (2)         = {len(hyperparameters2)}')
     print(f'Best grid search validation epoch    = {training_epochs + 1} epochs')
-    print(f'Best grid search validation error    = (MSE) {best_results2["val_error"]}')
-    print(f'Final retrained MEE on training      = (MEE) {mean_euclidean_error(train_output, train_target)}')
+    print(f'Best grid search validation error    = (Norm. MSE) {best_results2["val_error"]}')
+    print(f'Final retrained MEE on training      = (MEE)       {mean_euclidean_error(train_output, train_target)}')
     # CAREFUL! UNCOMMENT ONLY AT THE END OF THE ENTIRE EXPERIMENT
-    print(f'Final retrained MEE on test          = (MEE) {mean_euclidean_error(test_output, test_target)}')
+    print(f'Final retrained MEE on test          = (MEE)       {mean_euclidean_error(test_output, test_target)}')
     print(f'Grid search total time (s) (1)      = {(after_grid_search_time1 - before_grid_search_time1)} seconds')
     #print(f'Grid search total time (s) (2)      = {(after_grid_search_time2 - before_grid_search_time2)} seconds')
 

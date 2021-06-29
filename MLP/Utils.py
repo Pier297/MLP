@@ -29,3 +29,27 @@ def combine_subseed(ss1, ss2):
 
 def change_seed(d, subseed=None):
     return {**d, "seed": generate_seed() if subseed is None else d['seed'] + subseed}
+
+def data_statistics(dataset):
+    return [column_statistics(col) for col in dataset.T]
+
+def column_statistics(X):
+    return {'avg': np.average(X), 'std': np.std(X)}
+
+def normalize_column(X, stats):
+    return (X - stats['avg']) / stats['std']
+
+def denormalize_column(X, stats):
+    return (X * stats['std']) + stats['avg']
+
+def normalize(M_original, stats):
+    M = np.array(M_original)
+    for i, stat in enumerate(stats):
+        M[:, i] = normalize_column(M[:, i], stat)
+    return M
+
+def denormalize(M_original, stats):
+    M = np.array(M_original)
+    for i, stat in enumerate(stats):
+        M[:, i] = denormalize_column(M[:, i], stat)
+    return M
