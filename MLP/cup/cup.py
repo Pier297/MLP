@@ -101,10 +101,10 @@ if __name__ == '__main__':
 
     # --- Retraining with the final model ---
 
-    training_epochs = ceil(average(list(map(lambda x: x["best_epoch"], best_results2["trials"]))))
+    retraining_epochs = best_results2["epochs"]
 
     final_hyperparameters = {**best_hyperconfiguration2,
-                             "max_epochs": training_epochs,
+                             "max_epochs": retraining_epochs,
                              'seed': generate_seed(),
                              'print_stats': True}
 
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     print(f'Final model seed                     = {final_hyperparameters["seed"]}')
     print(f'Hyperparameters searched (1)         = {len(hyperparameters1)}')
     print(f'Hyperparameters searched (2)         = {len(hyperparameters2)}')
-    print(f'Best grid search validation epoch    = {training_epochs + 1} epochs')
+    print(f'Best grid search validation epoch    = {retraining_epochs + 1} epochs')
     print(f'Best grid search validation error    = (Norm. MSE) {best_results2["val_error"]}')
     print(f'Final retrained MEE on training      = (MEE)       {mean_euclidean_error(train_output, train_target)}')
     # CAREFUL! UNCOMMENT ONLY AT THE END OF THE ENTIRE EXPERIMENT

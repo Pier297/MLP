@@ -6,32 +6,14 @@ import numpy as np
 
 def holdout_hyperconfiguration(conf, training, validation, trial_subseed):
     model = Sequential(change_seed(conf, subseed=trial_subseed))
-    return gradient_descent(model, training, validation, conf)
-
-
-def pad_data_constantly(target_size, data):
-    return np.concatenate((data, np.full((target_size - data.shape[0],), data[-1])))
-
-def average_zip(results):
-    return np.sum(np.stack(results),axis=0) / len(results)
-
-def average_uneven_length_results(results):
-    max_length = max(map(len, results))
-    results_even = list(map(lambda data: pad_data_constantly(max_length, data), results))
-    return average_zip(results_even)
-
-def combine_fold_results(folds):
-    get_all_np = lambda k, d: list(map(lambda x: np.array(x[k]), d))
-    return {'best_val_error':   np.average(get_all_np('best_val_error', folds)),
-            'best_epoch':       int(np.average(get_all_np('best_epoch', folds))),
-            'train_errors':     average_uneven_length_results(get_all_np('train_errors',     folds)),
-            'train_accuracies': average_uneven_length_results(get_all_np('train_accuracies', folds)),
-            'val_errors':       average_uneven_length_results(get_all_np('val_errors',       folds)),
-            'val_accuracies':   average_uneven_length_results(get_all_np('val_accuracies',   folds)),
-            'watch_errors':     average_uneven_length_results(get_all_np('watch_errors',     folds)),
-            'watch_accuracies': average_uneven_length_results(get_all_np('watch_accuracies', folds)),
-            'weights_norms':    average_uneven_length_results(get_all_np('weights_norms',    folds)),
-            'gradient_norms':   average_uneven_length_results(get_all_np('gradient_norms',   folds))}
+    result = gradient_descent(model, training, validation, conf)
+    return {'best_epoch'          : result['best_epoch'],
+            'best_train_error'    : result['train_errors']    [result['best_epoch']],  
+            'best_train_accuracy' : result['train_accuracies'][result['best_epoch']],
+            'best_val_error'      : result['val_errors']      [result['best_epoch']],
+            'best_val_accuracy'   : result['val_accuracies']  [result['best_epoch']],
+            'plots'               : [result]
+            }
 
 def kfold_hyperconfiguration(conf, folded_dataset, trial_subseed):
     folds = []
@@ -45,4 +27,10 @@ def kfold_hyperconfiguration(conf, folded_dataset, trial_subseed):
         results = gradient_descent(model, training, validation, conf)
         folds.append(results)
 
-    return combine_fold_results(folds)
+    return {'best_epoch'          : np.average(np.array([f['best_epoch']                        for f in folds])),
+            'best_train_error'    : np.average(np.array([f['train_errors']    [f['best_epoch']] for f in folds])),  
+            'best_train_accuracy' : np.average(np.array([f['train_accuracies'][f['best_epoch']] for f in folds])),  
+            'best_val_error'      : np.average(np.array([f['val_errors']      [f['best_epoch']] for f in folds])),  
+            'best_val_accuracy'   : np.average(np.array([f['val_accuracies']  [f['best_epoch']] for f in folds])),  
+            'plots'               : folds
+           }

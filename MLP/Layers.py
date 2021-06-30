@@ -2,11 +2,16 @@ import numpy as np
 from MLP.ActivationFunctions import Tanh, Sigmoid
 from math import sqrt
 
-def Dense(in_dimension: int, out_dimension: int, use_bias=True, activation_func=Tanh()):
+def Dense(in_dimension: int, out_dimension: int, use_bias=True, activation_func=Tanh(), weights_init = {'method': 'linear', 'range': 0.7}):
     layer = {}
-    init = sqrt(6/(out_dimension + in_dimension))
-    layer["W"] = np.random.uniform(low=-init/2, high=init/2, size=(out_dimension, in_dimension))
-    #layer["W"] = np.random.rand(out_dimension, in_dimension) * 0.3
+    
+    if weights_init['method'] == 'linear':
+        layer["W"] = ((np.random.rand(out_dimension, in_dimension)-0.5)*2) * weights_init['range']
+    elif weights_init['method'] == 'fanin':
+        init = sqrt(6/(out_dimension + in_dimension))
+        layer["W"] = np.random.uniform(low=-init/2, high=init/2, size=(out_dimension, in_dimension))
+    else:
+        raise Exception(f'Invalid weights initialization {str(weights_init)}')
 
     layer["b"] = np.zeros((out_dimension,))
     layer["use_bias"] = use_bias

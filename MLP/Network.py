@@ -21,10 +21,10 @@ def Sequential(conf):
 
     hidden_layers_sizes = [size for (_, size) in conf["hidden_layers"][0]]
 
-    model["layers"].append(Dense(in_dimension, hidden_layers_sizes[0], activation_func=hidden_activation_functions[0]))
+    model["layers"].append(Dense(in_dimension, hidden_layers_sizes[0], activation_func=hidden_activation_functions[0], weights_init=conf['weights_init']))
     for i in range(len(hidden_layers_sizes) - 1):
-        model["layers"].append(Dense(hidden_layers_sizes[i], hidden_layers_sizes[i + 1], activation_func=hidden_activation_functions[i + 1]))
-    model["layers"].append(Dense(hidden_layers_sizes[-1], out_dimension, activation_func=hidden_activation_functions[-1]))
+        model["layers"].append(Dense(hidden_layers_sizes[i], hidden_layers_sizes[i + 1], activation_func=hidden_activation_functions[i + 1], weights_init=conf['weights_init']))
+    model["layers"].append(Dense(hidden_layers_sizes[-1], out_dimension, activation_func=hidden_activation_functions[-1], weights_init=conf['weights_init']))
 
     return model
 

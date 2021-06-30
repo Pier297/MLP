@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
-from MLP.Utils import argmin
+from MLP.Utils import argmin_index
 
 def end_plotting():
     plt.show()
@@ -25,12 +25,9 @@ def plot_compare_outputs(train_output, watch_output, name: str, file_name: str =
 def plot_final_training_with_test_error(train_errors, watch_errors, name: str = 'MSE', file_name: str = '', skip_first_elements=0):
     plt.figure()
 
-    train_errors_c = train_errors[skip_first_elements:]
-    watch_errors_c = watch_errors[skip_first_elements:]
-
-    plt.plot(train_errors_c, color='blue', label='Train error')
+    plt.plot(train_errors, color='blue', label='Train error')
     if watch_errors != []:
-        plt.plot(watch_errors_c, color='green', label='Test error', linestyle='dashdot')
+        plt.plot(watch_errors, color='green', label='Test error', linestyle='dashdot')
     plt.legend()
     plt.title('Final training: ' + name)
     plt.xlabel('Epoch')
@@ -73,8 +70,8 @@ def plot_gradient_norms(gradient_norms, title: str, file_name: str = ''):
     if file_name != '':
         plt.savefig(file_name)
 
-def find_best(trials):
-    return argmin(lambda t: t['best_val_error'], trials)
+def find_best(plots):
+    return argmin_index(lambda t: t['best_val_error'], plots)
 
 def plot_model(train, vals, label1, label2, *args, **kwargs):
     if train != []:
@@ -82,15 +79,17 @@ def plot_model(train, vals, label1, label2, *args, **kwargs):
     if vals != []:
         plt.plot(vals, label=label2, color='orange', linestyle='dashed', *args, **kwargs)
 
-def plot_model_selection_learning_curves(trials, highlight_best=True, name='MSE', file_name=''):
+ALPHA = 0.7
+
+def plot_model_selection_learning_curves(plots, highlight_best=True, name='MSE', file_name=''):
     plt.figure()
+    best_i = find_best(plots) if highlight_best else -1
 
-    best_i = find_best(trials) if highlight_best else -1
-
-    for i, results in enumerate(trials):
+    for i, results in enumerate(plots):
         plot_model(results['train_errors'], results['val_errors'],
-                   'Training error' if i == best_i else '', 'Validation error' if i == best_i else '',
-                   alpha=1.0 if i == best_i else 0.4)
+                   'Training error' if i == best_i else '',
+                   'Validation error' if i == best_i else '',
+                   alpha=1.0 if i == best_i else ALPHA)
 
     plt.legend()
     plt.title(name)
@@ -100,15 +99,16 @@ def plot_model_selection_learning_curves(trials, highlight_best=True, name='MSE'
     if file_name != '':
         plt.savefig(file_name)
 
-def plot_model_selection_accuracies(trials, highlight_best=True, name='Accuracy', file_name=''):
+def plot_model_selection_accuracies(plots, highlight_best=True, name='Accuracy', file_name=''):
     plt.figure()
 
-    best_i = find_best(trials) if highlight_best else -1
+    best_i = find_best(plots) if highlight_best else -1
 
-    for i, results in enumerate(trials):
+    for i, results in enumerate(plots):
         plot_model(results['train_accuracies'], results['val_accuracies'],
-                   'Train accuracy' if i == best_i else '', 'Validation accuracy' if i == best_i else '',
-                   alpha=1.0 if i == best_i else 0.1)
+                   'Train accuracy' if i == best_i else '',
+                   'Validation accuracy' if i == best_i else '',
+                   alpha=1.0 if i == best_i else ALPHA)
 
     plt.legend()
     plt.title(name)

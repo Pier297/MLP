@@ -1,7 +1,7 @@
 from MLP.Validations import holdout_hyperconfiguration, kfold_hyperconfiguration
 from itertools import repeat
 from multiprocessing import Pool
-from MLP.Utils import argmin, change_seed, average
+from MLP.Utils import argmin_index, argmin, change_seed, average
 from MLP.LossFunctions import loss_function_from_name
 from MLP.Network import Sequential
 from multiprocessing import cpu_count
@@ -27,7 +27,18 @@ def generate_hyperparameters(params):
 def trialize(number_trials, validation_method):
     trials = [validation_method(t) for t in range(number_trials)]
     best_val_errors = np.array([t['best_val_error'] for t in trials])
-    return {'val_error': np.average(best_val_errors), 'trials': trials}
+    best_trial_plots = argmin(lambda x: x['best_val_error'], trials)['plots']
+    trials_epochs = np.array([t['best_epoch'] for t in trials])
+
+    return {'val_error'                    : np.average(best_val_errors),
+            'epochs'                       : ceil(np.average(trials_epochs)),
+            'trials'                       : trials,
+            'best_trial_plots'             : best_trial_plots,
+            'trials_best_train_errors'     : np.array([t['best_train_error']    for t in trials]),
+            'trials_best_train_accuracies' : np.array([t['best_train_accuracy'] for t in trials]),
+            'trials_best_val_errors'       : np.array([t['best_val_error']      for t in trials]),
+            'trials_best_val_accuracies'   : np.array([t['best_val_accuracy']   for t in trials]),
+            }
 
 def call_holdout(args):
     try:
@@ -36,10 +47,10 @@ def call_holdout(args):
         results = trialize(conf['number_trials'],
                            lambda subseed: holdout_hyperconfiguration(conf, train_set, val_set, subseed))
         after = time.perf_counter()
-        print(f"Holdout finished (VE: {results['val_error']}, avg trial best epoch: {int(average(list(map(lambda x: x['best_epoch'], results['trials']))))}), time (s): {after-before}")
+        print(f"Holdout finished (VE: {results['val_error']}), time (s): {after-before}")
         return results
-    except Exception:
-        print('Got exception with conf: ', conf)
+    except Exception as e:
+        print('Got exception with conf: ', conf, e.with_backtrace())
         return {'val_error': inf}
 
 def call_kfold(args):
@@ -49,10 +60,10 @@ def call_kfold(args):
         results = trialize(conf['number_trials'],
                            lambda subseed: kfold_hyperconfiguration(conf, folded_dataset, subseed))
         after = time.perf_counter()
-        print(f"K-fold finished (VE: {results['val_error']}, avg trial best epoch: {int(average(list(map(lambda x: x['best_epoch'], results['trials']))))}), time (s): {after-before}")
+        print(f"K-fold finished (VE: {results['val_error']}), time (s): {after-before}")
         return results
-    except Exception:
-        print('Got exception with conf: ', conf)
+    except Exception as e:
+        print('Got exception with conf: ', conf, e.with_backtrace())
         return {'val_error': inf}
 
 def holdout_grid_search(hyperparameters, training):
@@ -85,6 +96,6 @@ def grid_search(hyperparameters, training):
         raise ValueError(f'Unknown validation_type: {hyperparameters[0]["validation_type"]["method"]}')
 
     # Find the best hyperparameters configuration
-    best_i = argmin(lambda c: c['val_error'], validation_results)
+    best_i = argmin_index(lambda c: c['val_error'], validation_results)
 
     return hyperparameters[best_i], validation_results[best_i]

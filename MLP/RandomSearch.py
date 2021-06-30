@@ -31,6 +31,6 @@ def generate_hyperparameters_random(params, generations=100):
                     instance[k] = sample(v)
                 else:
                     instance[k] = v
-            print("Lr generated:", instance['lr'])
+            print("Lr generated:", instance['lr'], instance['momentum'])
             yield instance
     return list(stream())

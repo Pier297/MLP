@@ -2,7 +2,7 @@ import random
 import numpy as np
 from math import inf
 
-def argmin(f, v):
+def argmin_index(f, v):
     minimum = inf
     minimum_i = -1
     for (i, x) in enumerate(v):
@@ -14,8 +14,8 @@ def argmin(f, v):
         raise 'Empty list passed to argmin'
     return minimum_i
 
-def get_trials_best_epoch_property(trials, k):
-    return np.array([t[k][t['best_epoch']] for t in trials])
+def argmin(f, v):
+    return v[argmin_index(f, v)]
 
 def average(s):
     return sum(s) / len(s)
