@@ -5,10 +5,10 @@ monk_config = {
     'out_dimension'          : 1,
     'target_domain'          : (0, 1), # (cross entropy)
     'validation_percentage': 0.2,
-    'validation_type'        : {'method': 'kfold', 'k': 4},
+    'validation_type'        : {'method': 'kfold', 'k': 5},
     #'validation_type'        : {'method': 'holdout'},
     'max_unlucky_epochs'     : 400,
-    'max_epochs'             : 200,
+    'max_epochs'             : 300,
     'number_trials'          : 5,
     'print_stats'            : False,
     'weights_init'           : [{'method': 'fanin'}]
@@ -16,10 +16,10 @@ monk_config = {
 
 monk1_hyperparameters = {**monk_config,
     'mini_batch_percentage'  : 1.0,
-    'lr'                     : [0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6],# 1.0, 1.1, 1.2, 1.3],#, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5], # 0.6
+    'lr'                     : [0.8],# 1.0, 1.1, 1.2, 1.3],#, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5], # 0.6
     'lr_decay'               : [None], #[(0.0, 50)],
     'l2'                     : [0.0],
-    'momentum'               : [0.6],
+    'momentum'               : [0.6,],
     'hidden_layers'          : [([('tanh',5)],'sigmoid'),
                                ],
 }
