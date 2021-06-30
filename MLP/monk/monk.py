@@ -18,8 +18,8 @@ global_seed = int(2**16 * np.random.rand())
 random.seed(global_seed)
 np.random.seed(global_seed)
 
-monks = [(1, '1',    monk1_hyperparameters),
-         #(2, '2',    monk2_hyperparameters),
+monks = [#(1, '1',    monk1_hyperparameters),
+         (2, '2',    monk2_hyperparameters),
          #(3, '3',    monk3_monk_hyperparameters_stream),
          #(3, '3reg', monk3_hyperparameters_reg_stream),
          ]
@@ -35,6 +35,10 @@ if __name__ == '__main__':
         pass
 
     for monk_id, name, monk_hyperparameters in monks:
+
+        """ global_seed = monk1_hyperparameters['global_seed']
+        random.seed(global_seed)
+        np.random.seed(global_seed) """
         try:
             os.mkdir(f'MLP/monk/plots/monk{name}/')
         except:
