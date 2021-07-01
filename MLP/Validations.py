@@ -26,7 +26,7 @@ def kfold_hyperconfiguration(conf, folded_dataset, trial_subseed):
 
         results = gradient_descent(model, training, validation, conf)
         folds.append(results)
-
+    
     return {'best_epoch'          : np.average(np.array([f['best_epoch']                        for f in folds])),
             'best_train_error'    : np.average(np.array([f['train_errors']    [f['best_epoch']] for f in folds])),  
             'best_train_accuracy' : np.average(np.array([f['train_accuracies'][f['best_epoch']] for f in folds])),  

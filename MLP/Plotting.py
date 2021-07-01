@@ -83,6 +83,7 @@ ALPHA = 0.7
 
 def plot_model_selection_learning_curves(plots, highlight_best=True, name='MSE', file_name=''):
     plt.figure()
+    print(len(plots))
     best_i = find_best(plots) if highlight_best else -1
 
     for i, results in enumerate(plots):

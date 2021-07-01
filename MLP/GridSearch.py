@@ -98,4 +98,4 @@ def grid_search(hyperparameters, training):
     # Find the best hyperparameters configuration
     best_i = argmin_index(lambda c: c['val_error'], validation_results)
 
-    return hyperparameters[best_i], validation_results[best_i]
+    return hyperparameters[best_i], validation_results[best_i], validation_results

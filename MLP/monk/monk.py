@@ -20,8 +20,8 @@ np.random.seed(global_seed)
 
 monks = [#(1, '1',    monk1_hyperparameters),
          (2, '2',    monk2_hyperparameters),
-         #(3, '3',    monk3_monk_hyperparameters_stream),
-         #(3, '3reg', monk3_hyperparameters_reg_stream),
+         #(3, '3',    monk3_hyperparameters),
+         #(3, '3reg', monk3_hyperparameters_reg),
          ]
 
 if __name__ == '__main__':
@@ -35,10 +35,6 @@ if __name__ == '__main__':
         pass
 
     for monk_id, name, monk_hyperparameters in monks:
-
-        """ global_seed = monk1_hyperparameters['global_seed']
-        random.seed(global_seed)
-        np.random.seed(global_seed) """
         try:
             os.mkdir(f'MLP/monk/plots/monk{name}/')
         except:
@@ -52,9 +48,9 @@ if __name__ == '__main__':
 
         print(f'First grid search over: {len(monk_hyperparameters_stream)} configurations.')
         before_grid_search_time                = time.perf_counter()
-        
-        best_hyperconfiguration1, best_results1 = grid_search(monk_hyperparameters_stream, training)
-        
+
+        best_hyperconfiguration1, best_results1, _ = grid_search(monk_hyperparameters_stream, training)
+
         # --- Refine the second Grid Search using a second Random Search ---
 
         print("Hyperconfiguration chosen by the first grid search")
@@ -96,9 +92,13 @@ if __name__ == '__main__':
         test_output  = predict(model, test_input)
 
         loss_func = loss_function_from_name(final_hyperparameters['loss_function_name'])
-        
+
+        mse_func = MSE()
+
         train_error = loss_func.eval(train_output, train_target)
         test_error  = loss_func.eval(test_output,  test_target)
+        train_mse = mse_func.eval(train_output, train_target)
+        test_mse = mse_func.eval(test_output, test_target)
 
         variance_train_error = loss_func.std(train_output, train_target)**2
         variance_test_error  = loss_func.std(test_output, test_target)**2
@@ -110,17 +110,17 @@ if __name__ == '__main__':
         trials_train_accuracies = best_results2["trials_best_train_accuracies"]
         trials_val_errors       = best_results2["trials_best_val_errors"]
         trials_val_accuracies   = best_results2["trials_best_val_accuracies"]
-        
+
         avg_grid_search_train_errors     = np.average(trials_train_errors)
         avg_grid_search_train_accuracies = np.average(trials_train_accuracies)
         avg_grid_search_val_errors       = np.average(trials_val_errors)
         avg_grid_search_val_accuracies   = np.average(trials_val_accuracies)
-       
+
         variance_trials_train_errors   = np.std(trials_train_errors)**2
         variance_trials_train_accuracy = np.std(trials_train_accuracies)**2
         variance_trials_val_errors     = np.std(trials_val_errors)**2
         variance_trials_val_accuracy   = np.std(trials_val_accuracies)**2
- 
+
         print("\n")
         print(f"Monk {name}")
         print(f'Global seed = {global_seed}\n')
@@ -136,12 +136,14 @@ if __name__ == '__main__':
         print(f'Final selected test error            = {test_error}, std={variance_test_error}')
         print(f'Final test accuracy                  = {test_accuracy}')
         print(f'Grid search total time (s)           = {after_grid_search_time - before_grid_search_time} seconds')
+        print(f'Train MSE = {train_mse}')
+        print(f'Test MSE = {test_mse}')
 
         print("\nFinal hyperparameters\n\n", final_hyperparameters)
 
         # Plot the weights and gradient norm during the final training
         plot_weights_norms(final_results['weights_norms'],   title='Weights norm during final training',  file_name=f'MLP/monk/plots/monk{name}/final_weights_norms.svg')
-        plot_gradient_norms(final_results['gradient_norms'], title='Gradient norm during final training', file_name=f'MLP/monk/plots/monk{name}/final_gradient_norms.svg')
+        #plot_gradient_norms(final_results['gradient_norms'], title='Gradient norm during final training', file_name=f'MLP/monk/plots/monk{name}/final_gradient_norms.svg')
 
         # Plot the learning curves during the training of the best hyperparameter conf.
         if monk_hyperparameters['validation_type']['method'] == 'kfold':
@@ -150,9 +152,10 @@ if __name__ == '__main__':
             plot_model_selection_learning_curves(best_results2['best_trial_plots'], name=final_hyperparameters['loss_function_name'], highlight_best=True, file_name=f'MLP/monk/plots/monk{name}/model_selection_errors.svg')
             plot_model_selection_accuracies(best_results2['best_trial_plots'], highlight_best=True,                                                       file_name=f'MLP/monk/plots/monk{name}/model_selection_accuracies.svg')
         else:
-            plot_model_selection_learning_curves(best_results2['trials'], name=final_hyperparameters['loss_function_name'], highlight_best=True, file_name=f'MLP/monk/plots/monk{name}/model_selection_errors.svg')
-            plot_model_selection_accuracies(best_results2['trials'], highlight_best=True,                                                       file_name=f'MLP/monk/plots/monk{name}/model_selection_accuracies.svg')
-        
+            get_trial_plots = lambda results: list(map(lambda r: r['plots'][0], results))
+            plot_model_selection_learning_curves(get_trial_plots(best_results2['trials']), name=final_hyperparameters['loss_function_name'], highlight_best=True, file_name=f'MLP/monk/plots/monk{name}/model_selection_errors.svg')
+            plot_model_selection_accuracies(get_trial_plots(best_results2['trials']), highlight_best=True,                                                       file_name=f'MLP/monk/plots/monk{name}/model_selection_accuracies.svg')
+
 
         # Plot the final learning curve while training on all the data
         plot_final_training_with_test_error     (final_results['train_errors'],     final_results['watch_errors'],     name=final_hyperparameters['loss_function_name'], file_name=f'MLP/monk/plots/monk{name}/final_errors.svg')
@@ -174,6 +177,8 @@ if __name__ == '__main__':
             f.write(f'\nFinal selected test error            = {test_error}, std={variance_test_error}')
             f.write(f'\nFinal test accuracy                  = {test_accuracy}')
             f.write(f'\nGrid search total time (s)           = {after_grid_search_time - before_grid_search_time} seconds')
+            f.write(f'\n\nTrain MSE = {train_mse}')
+            f.write(f'\nTest MSE = {test_mse}\n')
             f.write("\nFinal hyperparameters\n\n")
             f.write(str(final_hyperparameters))
 

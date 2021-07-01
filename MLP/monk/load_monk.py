@@ -5,7 +5,7 @@ import numpy as np
 # Already handling the one-hot representation
 
 def one_hot(x, k):
-    r = np.zeros(k, dtype=int)
+    r = np.zeros(k, dtype=int) - 1
     r[x - 1] = 1
     return r
 

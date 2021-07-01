@@ -84,7 +84,7 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
             nabla_W, nabla_b = compute_gradient(model, mini_batch, loss_function)
 
             if config["optimizer"] == 'SGD':
-                gradient_descent_step(model, epoch, prev_delta_W, prev_delta_b, nabla_W, nabla_b, lr, lr_final, lr_final_epoch, l2, momentum)
+                gradient_descent_step(model=model, epoch=epoch, prev_delta_W=prev_delta_W, prev_delta_b=prev_delta_b, nabla_W=nabla_W, nabla_b=nabla_b, lr_initial=lr, lr_final=lr_final, lr_final_epoch=lr_final_epoch, l2=l2, momentum=momentum)
             elif config["optimizer"] == 'adam':
                 adam_step(model,
                           epoch + 1,
@@ -161,8 +161,8 @@ def gradient_descent_step(model, epoch, prev_delta_W, prev_delta_b, nabla_W, nab
         prev_delta_W[i] = momentum * prev_delta_W[i] - lr * nabla_W[i]
         prev_delta_b[i] = momentum * prev_delta_b[i] - lr * nabla_b[i]
 
-        model["layers"][i]["W"] += prev_delta_W[i] - l2 * model["layers"][i]["W"]
-        model["layers"][i]["b"] += prev_delta_b[i] - l2 * model["layers"][i]["b"]
+        model["layers"][i]["W"] += prev_delta_W[i] - 2*l2 * model["layers"][i]["W"]
+        model["layers"][i]["b"] += prev_delta_b[i]# - l2 * model["layers"][i]["b"]
 
 def compute_gradient(model, mini_batch, loss_function):
     x = mini_batch[:,:model["in_dimension"]]
