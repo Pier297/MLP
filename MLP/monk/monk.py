@@ -65,9 +65,9 @@ if __name__ == '__main__':
         hyperparameters2_stream = generate_hyperparameters_random(hyperparameters2, generations)
 
         print(f'Second grid search over: {generations} configurations.')
-        best_hyperconfiguration2, best_results2 = grid_search(hyperparameters2_stream, training)"""
+        best_hyperconfiguration2, best_results2, _ = grid_search(hyperparameters2_stream, training)
 
-        after_grid_search_time                 = time.perf_counter()
+        after_grid_search_time                 = time.perf_counter()"""
 
         best_results2 = best_results1
         best_hyperconfiguration2 = best_hyperconfiguration1
@@ -135,7 +135,7 @@ if __name__ == '__main__':
         print(f'Final selected train error           = {train_error}, std={variance_train_error}')
         print(f'Final selected test error            = {test_error}, std={variance_test_error}')
         print(f'Final test accuracy                  = {test_accuracy}')
-        print(f'Grid search total time (s)           = {after_grid_search_time - before_grid_search_time} seconds')
+        #print(f'Grid search total time (s)           = {after_grid_search_time - before_grid_search_time} seconds')
         print(f'Train MSE = {train_mse}')
         print(f'Test MSE = {test_mse}')
 
@@ -176,10 +176,10 @@ if __name__ == '__main__':
             f.write(f'\nFinal selected train error           = {train_error}, std={variance_train_error}')
             f.write(f'\nFinal selected test error            = {test_error}, std={variance_test_error}')
             f.write(f'\nFinal test accuracy                  = {test_accuracy}')
-            f.write(f'\nGrid search total time (s)           = {after_grid_search_time - before_grid_search_time} seconds')
+            #f.write(f'\nGrid search total time (s)           = {after_grid_search_time - before_grid_search_time} seconds')
             f.write(f'\n\nTrain MSE = {train_mse}')
             f.write(f'\nTest MSE = {test_mse}\n')
             f.write("\nFinal hyperparameters\n\n")
             f.write(str(final_hyperparameters))
 
-        #end_plotting()
+        end_plotting()

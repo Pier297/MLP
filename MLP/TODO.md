@@ -1,4 +1,3 @@
-- ensemble plots
-- ensemble 2nd grid search for sgd
-- 2 models (1 predict y_1, the other y_2)
 - NAG
+- Solve monl test <= 2.6
+- monk??
