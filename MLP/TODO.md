@@ -1,3 +1,1 @@
-- NAG
-- Solve monl test <= 2.6
-- monk??
+- Solve cup test <= 2.8

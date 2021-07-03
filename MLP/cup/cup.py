@@ -11,36 +11,88 @@ import numpy as np
 import time
 import random
 import os
+from datetime import datetime
 from math import ceil
 
 global_seed = ceil((2**16 - 1) * np.random.rand())
 random.seed(global_seed)
 np.random.seed(global_seed)
 
-def best_k_grid_search(hyperparameters_stream, hyperparameters_space, k=1, n_random_search=0):
+def best_k_grid_search_adam(n_training, hyperparameters_stream, hyperparameters_space, k=1, n_random_search=0):
     print(f'First grid search over: {len(hyperparameters_stream)} configurations.')
     before_grid_search_time1                = time.perf_counter()
-    best_hyperconfiguration, best_results, validation_results = grid_search(hyperparameters_stream, n_training)
+    _, best_results, validation_results = grid_search(hyperparameters_stream, n_training)
     after_grid_search_time1                 = time.perf_counter()
     print(f'Finished first grid search in {after_grid_search_time1 - before_grid_search_time1} seconds')
-    if n_random_search > 0:
-        hyperparameters = {**best_hyperconfiguration,
-            'lr':       gen_range(best_hyperconfiguration['lr'],   hyperparameters_space['lr'],    method='uniform', boundaries=(1e-9, inf)),
-            'momentum': gen_range(best_hyperconfiguration['momentum'], hyperparameters_space['momentum'], method='uniform', boundaries=(0, 0.99999))
-        }
-        hyperparameters_stream = generate_hyperparameters_random(hyperparameters, n_random_search)
-
-        print(f'Second grid search over: {n_random_search} configurations.')
-        before_grid_search_time2                = time.perf_counter()
-        best_hyperconfiguration, best_results, validation_results = grid_search(hyperparameters_stream, n_training)
-        after_grid_search_time2                 = time.perf_counter()
-        print(f'Finished first grid search in {after_grid_search_time2 - before_grid_search_time2} seconds')
 
     # Get best k results from the grid search
+    for v in validation_results:
+        v['optimizer_name'] = hyperparameters_space['optimizer']
     sorted_validations_results = sorted(enumerate(validation_results), key=lambda x: x[1]['val_error'])
     best_models_results = sorted_validations_results[:k]
+
+    (top_models_confs, top_validation_results) = list(map(lambda x: hyperparameters_stream[x[0]], best_models_results)), list(map(lambda x: x[1], best_models_results))
+
+    final_models_confs = []
+    final_validation_results = []
+    if n_random_search > 0:
+        print('\n-------- Start random searches --------\n')
+        for i_random_search, best_model_conf in enumerate(top_models_confs):
+            print(f'(START) Random {i_random_search} search over: {n_random_search} configurations.')
+            before_grid_search_time2 = time.perf_counter()
+            perturbated_best_model_conf, best_results, validation_results = \
+                grid_search(generate_hyperparameters_random(best_model_conf, {**best_model_conf,
+                                'lr':                gen_range(best_model_conf['lr'],                hyperparameters_space['lr'],                method='uniform', boundaries=(1e-9, inf)),
+                                'adam_decay_rate_1': gen_range(best_model_conf['adam_decay_rate_1'], hyperparameters_space['adam_decay_rate_1'], method='uniform', boundaries=(0, 0.99999)),
+                                'adam_decay_rate_2': gen_range(best_model_conf['adam_decay_rate_2'], hyperparameters_space['adam_decay_rate_2'], method='uniform', boundaries=(0, 0.99999))
+                            }, n_random_search), n_training)
+            after_grid_search_time2 = time.perf_counter()
+            final_models_confs.append(perturbated_best_model_conf)
+            final_validation_results.append(best_results)
+            print(f'(END) Random {i_random_search} search in {after_grid_search_time2 - before_grid_search_time2} seconds')
+
+    for v in final_validation_results:
+        v['optimizer_name'] = hyperparameters_space['optimizer']
+
     # hyperparameters_best_models, validation_results
-    return list(map(lambda x: hyperparameters_stream[x[0]], best_models_results)), list(map(lambda x: x[1], best_models_results))
+    return final_models_confs, final_validation_results
+def best_k_grid_search_sgd(n_training, hyperparameters_stream, hyperparameters_space, k=1, n_random_search=0):
+    print(f'First grid search over: {len(hyperparameters_stream)} configurations.')
+    before_grid_search_time1                = time.perf_counter()
+    _, best_results, validation_results = grid_search(hyperparameters_stream, n_training)
+    after_grid_search_time1                 = time.perf_counter()
+    print(f'Finished first grid search in {after_grid_search_time1 - before_grid_search_time1} seconds')
+
+    # Get best k results from the grid search
+    for v in validation_results:
+        v['optimizer_name'] = hyperparameters_space['optimizer']
+    sorted_validations_results = sorted(enumerate(validation_results), key=lambda x: x[1]['val_error'])
+    best_models_results = sorted_validations_results[:k]
+
+    (top_models_confs, top_validation_results) = list(map(lambda x: hyperparameters_stream[x[0]], best_models_results)), list(map(lambda x: x[1], best_models_results))
+
+    final_models_confs = []
+    final_validation_results = []
+    if n_random_search > 0:
+        print('\n-------- Start random searches --------\n')
+        for i_random_search, best_model_conf in enumerate(top_models_confs):
+            print(f'(START) Random {i_random_search} search over: {n_random_search} configurations.')
+            before_grid_search_time2 = time.perf_counter()
+            perturbated_best_model_conf, best_results, validation_results = \
+                grid_search(generate_hyperparameters_random(best_model_conf, {**best_model_conf,
+                                'lr':       gen_range(best_model_conf['lr'],       hyperparameters_space['lr'],       method='uniform', boundaries=(1e-9, inf)),
+                                'momentum': gen_range(best_model_conf['momentum'], hyperparameters_space['momentum'], method='uniform', boundaries=(0, 0.99999))
+                            }, n_random_search), n_training)
+            after_grid_search_time2 = time.perf_counter()
+            final_models_confs.append(perturbated_best_model_conf)
+            final_validation_results.append(best_results)
+            print(f'(END) Random {i_random_search} search in {after_grid_search_time2 - before_grid_search_time2} seconds')
+
+    for v in final_validation_results:
+        v['optimizer_name'] = hyperparameters_space['optimizer']
+
+    # hyperparameters_best_models, validation_results
+    return final_models_confs, final_validation_results
 
 if __name__ == '__main__':
     try:
@@ -80,13 +132,13 @@ if __name__ == '__main__':
     hyperparameters1_stream = generate_hyperparameters(adam_hyperparameters)
     n_random_search = adam_hyperparameters['n_random_search']
     assert n_random_search >= 4
-    top_models_confs, top_validation_results = best_k_grid_search(hyperparameters1_stream, adam_hyperparameters, k=4, n_random_search=n_random_search)
+    top_models_confs, top_validation_results = best_k_grid_search_adam(n_training, hyperparameters1_stream, adam_hyperparameters, k=n_models_ensemble//2, n_random_search=n_random_search)
 
     # Run second grid search for the second ensemble trained with SGD
     hyperparameters2_stream = generate_hyperparameters(sgd_hyperparameters)
     n_random_search = sgd_hyperparameters['n_random_search']
     assert n_random_search >= 4
-    top_models_confs2, top_validation_results2 = best_k_grid_search(hyperparameters2_stream, sgd_hyperparameters, k=4, n_random_search=n_random_search)
+    top_models_confs2, top_validation_results2 = best_k_grid_search_sgd(n_training, hyperparameters2_stream, sgd_hyperparameters, k=n_models_ensemble//2, n_random_search=n_random_search)
 
     top_models_confs += top_models_confs2
     top_validation_results += top_validation_results2
@@ -142,9 +194,11 @@ if __name__ == '__main__':
     # CAREFUL! UNCOMMENT ONLY AT THE END OF THE ENTIRE EXPERIMENT
     print(f'Final retrained MEE on test          = (MEE)       {ensemble_test_mee}')
 
-    with open(f'MLP/cup/results/ensemble_mee.txt', 'w') as f:
+    with open(f'MLP/cup/results/ensemble_mee_{ensemble_test_mee}.txt', 'w') as f:
+        f.write('Global seed ' + str(global_seed))
         f.write("\nFinal configurations\n")
-        f.write(str(final_confs))
+        for conf in final_confs:
+            f.write('\n' + str(conf))
         f.write("\nModels MEE:\n")
         f.write('\n'.join([str(train_mee) + ' ' + str(test_mee) for train_mee, test_mee in models_mee]))
         f.write('\n\nEnsemble Train MEE: ')
@@ -165,12 +219,12 @@ if __name__ == '__main__':
         if adam_hyperparameters['validation_type']['method'] == 'kfold':
             print("Length: ", len(grid_search_results['best_trial_plots']))
             assert len(grid_search_results['best_trial_plots']) == adam_hyperparameters['validation_type']['k']
-            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], name=f'Ensemble {i_ensemble}: Grid Search Mean Squared Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
+            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], name=f'Ensemble {i_ensemble} {grid_search_results["optimizer_name"]}: Grid Search Mean Squared Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
         else:
-            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], name=f'Ensemble {i_ensemble}: Grid Search Mean Squared Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
+            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], name=f'Ensemble {i_ensemble} {grid_search_results["optimizer_name"]}: Grid Search Mean Squared Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
 
         # Plot the final retraining
-        plot_final_training_with_test_error(retraining_result['train_errors'], retraining_result['watch_errors'], name=f'Ensemble {i_ensemble}: Final Training Mean Squared Error', file_name=f'MLP/cup/plots/ensemble{i_ensemble}_retraining_errors.svg')
+        plot_final_training_with_test_error(retraining_result['train_errors'], retraining_result['watch_errors'], name=f'Ensemble {i_ensemble} {grid_search_results["optimizer_name"]}: Final Training Mean Squared Error', file_name=f'MLP/cup/plots/ensemble{i_ensemble}_retraining_errors.svg')
 
 
     plot_compare_outputs(ensemble_train_outputs, train_target, name=f'Final training output comparison', file_name='MLP/cup/plots/scatter_train.svg')

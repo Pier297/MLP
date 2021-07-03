@@ -1,6 +1,6 @@
 monk_config = {
     'loss_function_name'     : "Cross Entropy",
-    'optimizer'              : "SGD",
+    'optimizer'              : "NAG",
     'in_dimension'           : 17,
     'out_dimension'          : 1,
     'target_domain'          : (0, 1), # (cross entropy)

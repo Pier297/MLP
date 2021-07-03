@@ -1,9 +1,10 @@
 from math import ceil
 import numpy as np
-from MLP.LossFunctions import loss_function_from_name, accuracy, MSE, CrossEntropy
-from MLP.Layers import forward, net
+from MLP.LossFunctions import loss_function_from_name, accuracy
+from MLP.Gradient import compute_gradient
 from MLP.Network import predict
 from MLP.Adam import adam_step
+from MLP.NAG import nag_step
 from math import inf
 
 def print_epoch_stats(loss_function, model, epoch, train_error, val_error, watch_error):
@@ -36,7 +37,7 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
     print_stats                = config['print_stats']
     min_train_error            = config['min_train_error'] if 'min_train_error' in config and config['min_train_error'] is not None else 0.0
 
-    if config["optimizer"] == 'SGD':
+    if config["optimizer"] == 'SGD' or config['optimizer'] == 'NAG':
         momentum     = config['momentum']
         # Initialize to 0 the prev delta (used for momentum)
         prev_delta_W = [np.zeros(layer["W"].shape) for layer in model["layers"]]
@@ -85,6 +86,8 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
 
             if config["optimizer"] == 'SGD':
                 gradient_descent_step(model=model, epoch=epoch, prev_delta_W=prev_delta_W, prev_delta_b=prev_delta_b, nabla_W=nabla_W, nabla_b=nabla_b, lr_initial=lr, lr_final=lr_final, lr_final_epoch=lr_final_epoch, l2=l2, momentum=momentum)
+            elif config["optimizer"] == 'NAG':
+                nag_step(model=model, mini_batch=mini_batch, loss_function=loss_function, epoch=epoch, prev_delta_W=prev_delta_W, prev_delta_b=prev_delta_b, lr_initial=lr, lr_final=lr_final, lr_final_epoch=lr_final_epoch, l2=l2, momentum=momentum)
             elif config["optimizer"] == 'adam':
                 adam_step(model,
                           epoch + 1,
@@ -162,34 +165,4 @@ def gradient_descent_step(model, epoch, prev_delta_W, prev_delta_b, nabla_W, nab
         prev_delta_b[i] = momentum * prev_delta_b[i] - lr * nabla_b[i]
 
         model["layers"][i]["W"] += prev_delta_W[i] - 2*l2 * model["layers"][i]["W"]
-        model["layers"][i]["b"] += prev_delta_b[i]# - l2 * model["layers"][i]["b"]
-
-def compute_gradient(model, mini_batch, loss_function):
-    x = mini_batch[:,:model["in_dimension"]]
-    y = mini_batch[:,model["in_dimension"]:]
-
-    # Forward computation
-    deltas = []
-    activations = [x]
-    activations_der = []
-
-    for layer in model["layers"]:
-        deltas.append(np.zeros(layer["W"].shape))
-        net_x = net(layer, x)
-        x = layer["activation_func"](net_x)
-        activations_der.append(layer["activation_func_derivative"](net_x))
-        activations.append(x)
-
-    # Output layer
-    deltas[-1] = loss_function.gradient(activations[-1], y) * activations_der[-1]
-
-    # Hidden layers
-    for i in reversed(range(len(model["layers"])-1)):
-        deltas[i] = np.dot(deltas[i+1], model["layers"][i+1]['W']) * activations_der[i]
-
-    batch_size = x.shape[0]
-
-    nabla_W = [d.T.dot(activations[i])/batch_size for i, d in enumerate(deltas)]
-    nabla_b = [d.sum(axis=0)/batch_size for d in deltas]
-
-    return (nabla_W, nabla_b)
+        model["layers"][i]["b"] += prev_delta_b[i]

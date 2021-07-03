@@ -1,16 +1,17 @@
 import random
 import numpy as np
-from math import inf
+from math import inf, isnan
 
 def argmin_index(f, v):
     minimum = inf
     minimum_i = -1
     for (i, x) in enumerate(v):
         xv = f(x)
-        if minimum > xv:
+        if minimum >= xv:
             minimum = xv
             minimum_i = i
     if minimum_i == -1:
+        print(v)
         raise 'Empty list passed to argmin'
     return minimum_i
 
@@ -37,13 +38,13 @@ def data_statistics(dataset):
     return [column_statistics(col) for col in dataset.T]
 
 def column_statistics(X):
-    return {'avg': np.average(X), 'std': np.std(X)}
+    return {'avg': np.average(X), 'std': np.std(X), 'max': np.max(X), 'min': np.min(X)}
 
 def normalize_column(X, stats):
-    return (X - stats['avg']) / stats['std']
+    return X - stats['avg']
 
 def denormalize_column(X, stats):
-    return (X * stats['std']) + stats['avg']
+    return X + stats['avg']
 
 def normalize(M_original, stats):
     M = np.array(M_original)
