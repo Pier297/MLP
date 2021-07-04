@@ -219,12 +219,12 @@ if __name__ == '__main__':
         if adam_hyperparameters['validation_type']['method'] == 'kfold':
             print("Length: ", len(grid_search_results['best_trial_plots']))
             assert len(grid_search_results['best_trial_plots']) == adam_hyperparameters['validation_type']['k']
-            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], name=f'Ensemble {i_ensemble} {grid_search_results["optimizer_name"]}: Grid Search Mean Squared Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
+            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], metric=True, name=f'Ensemble {i_ensemble} {grid_search_results["optimizer_name"]}: Grid Search Mean Squared Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
         else:
-            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], name=f'Ensemble {i_ensemble} {grid_search_results["optimizer_name"]}: Grid Search Mean Squared Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
+            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], metric=True, name=f'Ensemble {i_ensemble} {grid_search_results["optimizer_name"]}: Grid Search Mean Squared Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
 
         # Plot the final retraining
-        plot_final_training_with_test_error(retraining_result['train_errors'], retraining_result['watch_errors'], name=f'Ensemble {i_ensemble} {grid_search_results["optimizer_name"]}: Final Training Mean Squared Error', file_name=f'MLP/cup/plots/ensemble{i_ensemble}_retraining_errors.svg')
+        plot_final_training_with_test_error(retraining_result['metric_train_errors'], retraining_result['metric_watch_errors'], metric=True, name=f'Ensemble {i_ensemble} {grid_search_results["optimizer_name"]}: Final Training Mean Squared Error', file_name=f'MLP/cup/plots/ensemble{i_ensemble}_retraining_errors.svg')
 
 
     plot_compare_outputs(ensemble_train_outputs, train_target, name=f'Final training output comparison', file_name='MLP/cup/plots/scatter_train.svg')

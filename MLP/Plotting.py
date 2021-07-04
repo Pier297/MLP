@@ -81,18 +81,19 @@ def plot_model(train, vals, label1, label2, *args, **kwargs):
 
 ALPHA = 0.7
 
-def plot_model_selection_learning_curves(plots, highlight_best=True, name='MSE', file_name=''):
+def plot_model_selection_learning_curves(plots, metric=False, highlight_best=True, name='MSE', file_name=''):
     plt.figure()
     best_i = find_best(plots) if highlight_best else -1
 
     for i, results in enumerate(plots):
-        plot_model(results['train_errors'], results['val_errors'],
+        plot_model(results['train_errors'] if not metric else results['metric_train_errors'],
+                   results['val_errors'] if not metric else results['metric_val_errors'],
                    'Training error' if i == best_i else '',
                    'Validation error' if i == best_i else '',
                    alpha=1.0 if i == best_i else ALPHA)
 
     plt.legend()
-    plt.title(name)
+    plt.title(name if not metric else 'MEE')
     plt.xlabel('Epoch')
     plt.ylabel('Error')
     plt.draw()

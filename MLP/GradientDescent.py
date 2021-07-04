@@ -1,6 +1,6 @@
 from math import ceil
 import numpy as np
-from MLP.LossFunctions import loss_function_from_name, accuracy
+from MLP.LossFunctions import loss_function_from_name, accuracy, mean_euclidean_error
 from MLP.Gradient import compute_gradient
 from MLP.Network import predict
 from MLP.Adam import adam_step
@@ -65,6 +65,10 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
     watch_errors        = []
     watch_accuracies    = []
 
+    metric_train_errors = []
+    metric_val_errors   = []
+    metric_watch_errors = []
+
     weights_norms  = []
     gradient_norms = []
 
@@ -114,6 +118,16 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
         current_watch_error    = loss_function.eval(watch_outputs, watch_target)      if watching is not None else inf
         current_watch_accuracy = accuracy(watch_outputs, watch_target, target_domain) if watching is not None and target_domain is not None else inf
 
+
+        if config['additional_metric'] is not None:
+            metric_train_error    = mean_euclidean_error(train_outputs, train_target)
+            metric_val_error      = mean_euclidean_error(val_outputs,   val_target)    if validation is not None else inf
+            metric_watch_error    = mean_euclidean_error(watch_outputs, watch_target)  if watching   is not None else inf
+
+            metric_train_errors.append(metric_train_error)
+            metric_val_errors.append(metric_val_error)
+            metric_watch_errors.append(metric_watch_error)
+
         watch_errors.append(current_watch_error)
         watch_accuracies.append(current_watch_accuracy)
 
@@ -150,7 +164,10 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
             'watch_errors':     watch_errors,
             'watch_accuracies': watch_accuracies,
             'weights_norms':    weights_norms,
-            'gradient_norms':   gradient_norms}
+            'gradient_norms':   gradient_norms,
+            'metric_train_errors': metric_train_errors,
+            'metric_val_errors':   metric_val_errors,
+            'metric_watch_errors': metric_watch_errors}
 
 def gradient_descent_step(model, epoch, prev_delta_W, prev_delta_b, nabla_W, nabla_b, lr_initial, lr_final, lr_final_epoch, l2, momentum):
     if epoch >= lr_final_epoch:
