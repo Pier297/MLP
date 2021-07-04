@@ -47,10 +47,10 @@ def call_holdout(args):
         results = trialize(conf['number_trials'],
                            lambda subseed: holdout_hyperconfiguration(conf, train_set, val_set, subseed))
         after = time.perf_counter()
-        print(f"Holdout finished (VE: {results['val_error']}), time (s): {after-before}")
+        print('a',end='')
         return results
     except Exception as e:
-        print('Got exception with conf: ', conf, e.with_backtrace())
+        print('a',end='')
         return {'val_error': inf}
 
 def call_kfold(args):
@@ -60,10 +60,10 @@ def call_kfold(args):
         results = trialize(conf['number_trials'],
                            lambda subseed: kfold_hyperconfiguration(conf, folded_dataset, subseed))
         after = time.perf_counter()
-        print(f"K-fold finished (VE: {results['val_error']}), time (s): {after-before}")
+        print('a',end='')
         return results
     except Exception as e:
-        print('Got exception with conf: ', conf, e.with_backtrace())
+        print('a',end='')
         return {'val_error': inf}
 
 def holdout_grid_search(hyperparameters, training):
