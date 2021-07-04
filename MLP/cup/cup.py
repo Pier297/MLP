@@ -131,13 +131,11 @@ if __name__ == '__main__':
     # Run first grid search for the first ensemble trained with ADAM
     hyperparameters1_stream = generate_hyperparameters(adam_hyperparameters)
     n_random_search = adam_hyperparameters['n_random_search']
-    assert n_random_search >= 4
     top_models_confs, top_validation_results = best_k_grid_search_adam(n_training, hyperparameters1_stream, adam_hyperparameters, k=n_models_ensemble//2, n_random_search=n_random_search)
 
     # Run second grid search for the second ensemble trained with SGD
     hyperparameters2_stream = generate_hyperparameters(sgd_hyperparameters)
     n_random_search = sgd_hyperparameters['n_random_search']
-    assert n_random_search >= 4
     top_models_confs2, top_validation_results2 = best_k_grid_search_sgd(n_training, hyperparameters2_stream, sgd_hyperparameters, k=n_models_ensemble//2, n_random_search=n_random_search)
 
     top_models_confs += top_models_confs2
@@ -149,7 +147,8 @@ if __name__ == '__main__':
     ensemble_results = []
     final_confs = []
     models_mee = []
-    for best_hyperconf, results in zip(top_models_confs, top_validation_results):
+    for ensemble_i, (best_hyperconf, results) in enumerate(zip(top_models_confs, top_validation_results)):
+
         retraining_epochs = results["epochs"]
 
         final_hyperparameters = {**best_hyperconf,
@@ -173,6 +172,9 @@ if __name__ == '__main__':
 
         ensemble_train_outputs += train_output
         ensemble_test_outputs  += test_output
+
+        print(f"MEE for ensemble model {ensemble_i}: validation {results['metric_val_error']} (var={results['metric_val_error_var']}) train {results['metric_train_error']} (var={results['metric_train_error_var']})")
+
 
     # Combine the ensemble outputs into a single prediction by avg the outputs
     ensemble_train_outputs /= n_models_ensemble
@@ -224,7 +226,7 @@ if __name__ == '__main__':
             plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], metric=True, name=f'Ensemble {i_ensemble} {grid_search_results["optimizer_name"]}: Grid Search Mean Squared Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
 
         # Plot the final retraining
-        plot_final_training_with_test_error(retraining_result['metric_train_errors'], retraining_result['metric_watch_errors'], metric=True, name=f'Ensemble {i_ensemble} {grid_search_results["optimizer_name"]}: Final Training Mean Squared Error', file_name=f'MLP/cup/plots/ensemble{i_ensemble}_retraining_errors.svg')
+        plot_final_training_with_test_error(retraining_result['metric_train_errors'], retraining_result['metric_watch_errors'], name=f'Ensemble {i_ensemble} {grid_search_results["optimizer_name"]}: Final Training Mean Squared Error', file_name=f'MLP/cup/plots/ensemble{i_ensemble}_retraining_errors.svg')
 
 
     plot_compare_outputs(ensemble_train_outputs, train_target, name=f'Final training output comparison', file_name='MLP/cup/plots/scatter_train.svg')

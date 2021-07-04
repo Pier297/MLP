@@ -26,11 +26,23 @@ def generate_hyperparameters(params):
 
 def trialize(number_trials, validation_method):
     trials = [validation_method(t) for t in range(number_trials)]
-    best_val_errors = np.array([t['best_val_error'] for t in trials])
+    best_val_errors          = np.array([t['best_val_error'] for t in trials])
+    best_train_errors        = np.array([t['best_train_error'] for t in trials])
+    best_metric_val_errors   = np.array([t['best_metric_val_error'] for t in trials])
+    best_metric_train_errors = np.array([t['best_metric_train_error'] for t in trials])
     best_trial_plots = argmin(lambda x: x['best_val_error'], trials)['plots']
     trials_epochs = np.array([t['best_epoch'] for t in trials])
 
     return {'val_error'                    : np.average(best_val_errors),
+            'train_error'                  : np.average(best_train_errors),
+            'metric_val_error'             : np.average(best_metric_val_errors),
+            'metric_train_error'           : np.average(best_metric_train_errors),
+
+            'val_error_var'                : np.var(best_val_errors),
+            'train_error_var'              : np.var(best_train_errors),
+            'metric_val_error_var'         : np.var(best_metric_val_errors),
+            'metric_train_error_var'       : np.var(best_metric_train_errors),
+
             'epochs'                       : ceil(np.average(trials_epochs)),
             'trials'                       : trials,
             'best_trial_plots'             : best_trial_plots,

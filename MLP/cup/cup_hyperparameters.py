@@ -7,7 +7,7 @@ adam_hyperparameters = {
     'mini_batch_percentage'  : 0.3,
     'max_unlucky_epochs'     : 100,
     'max_epochs'             : 100,
-    'number_trials'          : 1,
+    'number_trials'          : 3,
     'n_random_search'        : 2,
     'validation_type':       {'method': 'holdout'},
     'target_domain'          : None,
@@ -17,10 +17,10 @@ adam_hyperparameters = {
     'momentum'               : [0],
     'adam_decay_rate_1'      : [0.9],
     'adam_decay_rate_2'      : [0.999],
-    'hidden_layers'          : [([('tanh',8), ('tanh', 8)],'linear')
-                                ([('tanh',8), ('tanh', 7)],'linear')
-                                ([('tanh',8), ('tanh', 6)],'linear')
-                                ([('tanh',8), ('tanh', 5)],'linear')
+    'hidden_layers'          : [([('tanh',8), ('tanh', 8)],'linear'),
+                                ([('tanh',8), ('tanh', 7)],'linear'),
+                                ([('tanh',8), ('tanh', 6)],'linear'),
+                                ([('tanh',8), ('tanh', 5)],'linear'),
                                 ],
     'weights_init'           : [{'method': 'fanin'}],
     'print_stats'            : False,
@@ -36,7 +36,7 @@ sgd_hyperparameters = {
     'mini_batch_percentage'  : 1,
     'max_unlucky_epochs'     : 100,
     'max_epochs'             : 100,
-    'number_trials'          : 1,
+    'number_trials'          : 3,
     'n_random_search'        : 2,
     'validation_type':       {'method': 'holdout'},
     'target_domain'          : None,
@@ -44,10 +44,10 @@ sgd_hyperparameters = {
     'lr_decay'               : None,
     'l2'                     : [0],
     'momentum'               : [0.8],
-    'hidden_layers'          : [([('tanh',8), ('tanh', 8)],'linear')
-                                ([('tanh',8), ('tanh', 7)],'linear')
-                                ([('tanh',8), ('tanh', 6)],'linear')
-                                ([('tanh',8), ('tanh', 5)],'linear')
+    'hidden_layers'          : [([('tanh',8), ('tanh', 8)],'linear'),
+                                ([('tanh',8), ('tanh', 7)],'linear'),
+                                ([('tanh',8), ('tanh', 6)],'linear'),
+                                ([('tanh',8), ('tanh', 5)],'linear'),
                                 ],
     'weights_init'           : [{'method': 'fanin'}],
     'print_stats'            : False,

@@ -14,7 +14,7 @@ class MSE:
 
     def eval(self, output, target):
         return np.average((target - output)**2)
-    
+
     def std(self, output, target):
         return np.std((target - output)**2)
 
@@ -54,9 +54,9 @@ def mean_euclidean_error(output, target):
     y2_target = target[:, 1]
     return np.average(np.sqrt((y1_target - y1_output)**2 + (y2_target - y2_output)**2))
 
-def mean_euclidean_error_std(output, target):
+def mean_euclidean_error_var(output, target):
     y1_output = output[:, 0]
     y2_output = output[:, 1]
     y1_target = target[:, 0]
     y2_target = target[:, 1]
-    return np.average(np.sqrt((y1_target - y1_output)**2 + (y2_target - y2_output)**2))    
+    return np.var(np.sqrt((y1_target - y1_output)**2 + (y2_target - y2_output)**2))
