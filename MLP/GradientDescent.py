@@ -6,6 +6,7 @@ from MLP.Network import predict
 from MLP.Adam import adam_step
 from MLP.NAG import nag_step
 from math import inf
+from MLP.Utils import denormalize
 
 def print_epoch_stats(loss_function, model, epoch, train_error, val_error, watch_error):
     msg1 = f'| Train = {train_error:<24}'    if train_error else ''
@@ -13,7 +14,7 @@ def print_epoch_stats(loss_function, model, epoch, train_error, val_error, watch
     msg3 = f'| Watch = {watch_error:<24}'    if watch_error else ''
     print(f'Epoch {epoch+1} | ({loss_function.name}) ' + msg1 + msg2 + msg3)
 
-def gradient_descent(model, training, validation=None, config={}, watching=None):
+def gradient_descent(model, training, validation=None, config={}, watching=None, output_norm_statistics=None):
     def compute_weights_norm(model):
         norm = 0.0
         for layer in model["layers"]:
@@ -118,11 +119,10 @@ def gradient_descent(model, training, validation=None, config={}, watching=None)
         current_watch_error    = loss_function.eval(watch_outputs, watch_target)      if watching is not None else inf
         current_watch_accuracy = accuracy(watch_outputs, watch_target, target_domain) if watching is not None and target_domain is not None else inf
 
-
         if config['additional_metric'] is not None:
             metric_train_error    = mean_euclidean_error(train_outputs, train_target)
-            metric_val_error      = mean_euclidean_error(val_outputs,   val_target)    if validation is not None else inf
-            metric_watch_error    = mean_euclidean_error(watch_outputs, watch_target)  if watching   is not None else inf
+            metric_val_error      = mean_euclidean_error(val_outputs,   val_target)   if validation is not None else inf
+            metric_watch_error    = mean_euclidean_error(watch_outputs, watch_target) if watching   is not None else inf
 
             metric_train_errors.append(metric_train_error)
             metric_val_errors.append(metric_val_error)

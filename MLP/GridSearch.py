@@ -9,7 +9,7 @@ from math import ceil, inf
 import time
 import numpy as np
 
-def generate_hyperparameters(params):
+def generate_hyperparameters(params, statistics={}):
     results = [{}]
     def cartesian_product(k, vs, ds):
         for v_index, v in enumerate(vs):
@@ -59,7 +59,7 @@ def call_holdout(args):
         results = trialize(conf['number_trials'],
                            lambda subseed: holdout_hyperconfiguration(conf, train_set, val_set, subseed))
         after = time.perf_counter()
-        print(f"Holdout finished (VE: {results['val_error']}), time (s): {after-before}")
+        print(f"{conf['optimizer']} (VE: {results['val_error']}, {conf['hidden_layers']} {conf['mini_batch_percentage']} lr:{conf['lr']}, l2:{conf['l2']}, a:{conf['momentum']} {conf['weights_init']}, ")
         return results
     except Exception as e:
         print('Got exception with conf: ', conf, e.with_backtrace())

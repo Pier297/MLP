@@ -10,16 +10,7 @@ def sample(v):
         raise ValueError(f'Unknown sample method: {v["method"]}')
 
 def gen_range(chosen, space, method='uniform', boundaries=(0.00001, 0.99)):
-    i = space.index(chosen)
-
-    if len(space) == 1:
-        (a, b) = (space[0] - space[0]/2, space[0] + space[0]/2)
-    elif i == 0:
-        (a, b) = (space[0] - (space[0] - space[1])/2, space[1])
-    elif i == len(space)-1:
-        (a, b) = (space[-2], space[-1] + (space[-2] - space[-1])/2)
-    else:
-        (a, b) = (space[i-1], space[i+1])
+    (a, b) = (chosen - (chosen*0.1), chosen + (chosen*0.1))
 
     if a < boundaries[0]:
         a = boundaries[0]

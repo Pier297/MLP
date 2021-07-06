@@ -7,20 +7,28 @@ def end_plotting():
 
 def plot_compare_outputs(train_output, watch_output, name: str, file_name: str = ''):
     #plt.figure()
+    if watch_output is not None:
+        fig, ax = plt.subplots()
 
-    fig, ax = plt.subplots()
+        tupleify = lambda x: (x[0], x[1])
 
-    tupleify = lambda x: (x[0], x[1])
+        ax.add_collection(LineCollection([[tupleify(train_output[i]), tupleify(watch_output[i])] for i in range(len(train_output))], linewidths=[0.2 for _ in range(len(train_output))]))
 
-    ax.add_collection(LineCollection([[tupleify(train_output[i]), tupleify(watch_output[i])] for i in range(len(train_output))], linewidths=[0.2 for _ in range(len(train_output))]))
-
-    plt.title('Scatter outputs with output-target lines: ' + name)
-    plt.scatter(train_output[:,0], train_output[:,1], marker='o', s=1, color='blue', label='Model outputs')
-    plt.scatter(watch_output[:,0], watch_output[:,1], marker='o', s=1, color='green', label='True Data')
-    plt.legend()
-    plt.draw()
-    if file_name != '':
-        plt.savefig(file_name)
+        plt.title('Scatter outputs with output-target lines: ' + name)
+        plt.scatter(train_output[:,0], train_output[:,1], marker='o', s=1, color='blue', label='Model outputs')
+        plt.scatter(watch_output[:,0], watch_output[:,1], marker='o', s=1, color='green', label='True Data')
+        plt.legend()
+        plt.draw()
+        if file_name != '':
+            plt.savefig(file_name)
+    else:
+        plt.figure()
+        plt.title('Blind test outputs: ' + name)
+        plt.scatter(train_output[:,0], train_output[:,1], marker='o', s=1, color='green', label='CUP outputs')
+        plt.draw()
+        if file_name != '':
+            plt.savefig(file_name)
+        
 
 def plot_final_training_with_test_error(train_errors, watch_errors, name: str = 'MSE', file_name: str = '', skip_first_elements=0):
     plt.figure()
@@ -93,7 +101,7 @@ def plot_model_selection_learning_curves(plots, metric=False, highlight_best=Tru
                    alpha=1.0 if i == best_i else ALPHA)
 
     plt.legend()
-    plt.title(name if not metric else 'MEE')
+    plt.title(name)
     plt.xlabel('Epoch')
     plt.ylabel('Error')
     plt.draw()

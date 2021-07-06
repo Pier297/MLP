@@ -19,3 +19,19 @@ def _load_cup(file_name):
             # [-1.227729, 0.740105, 0.453528, -0.761051, -0.537705, 1.471803, -1.143195, 2.034647, 1.603978, -1.399807, 58.616635, -36.878797]
             data.append(np.array(line))
     return np.array(data)
+
+
+def load_blind_cup():
+    data = _load_blind_cup('MLP/cup/data/ML-CUP20-TS.csv')
+
+    return data
+    
+
+def _load_blind_cup(file_name):
+    data = []
+    with open(file_name) as f:
+        for line in f.readlines():
+            line = line.strip().split(',')
+            line = [float(x) for x in line]
+            data.append(np.array(line))
+    return np.array(data)
