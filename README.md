@@ -51,7 +51,3 @@
 5. Run an experiment
 
         python MLP/monk/monk1.py
-
-### MacOS
-
-Follow the same steps as for linux

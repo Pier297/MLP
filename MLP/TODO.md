@@ -1,1 +1,0 @@
-- Solve cup test <= 2.8
