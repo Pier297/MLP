@@ -14,7 +14,7 @@ import os
 from datetime import datetime
 from math import ceil
 
-global_seed = ceil((2**16 - 1) * np.random.rand())
+global_seed = 57132#ceil((2**16 - 1) * np.random.rand())
 random.seed(global_seed)
 np.random.seed(global_seed)
 
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     n_test_input  = normalize(test      [:, :in_dimension], training_statistics[:in_dimension])
     n_test_target = normalize(test      [:, in_dimension:], training_statistics[in_dimension:])
 
-    # Run first grid search for the first ensemble trained with ADAM
+    """ # Run first grid search for the first ensemble trained with ADAM
     hyperparameters1_stream = generate_hyperparameters(adam_hyperparameters, statistics=training_statistics)
     n_random_search = adam_hyperparameters['n_random_search']
     top_models_confs, top_validation_results = best_k_grid_search_adam(n_training, hyperparameters1_stream, adam_hyperparameters, k=n_models_ensemble//2, n_random_search=n_random_search)
@@ -145,7 +145,19 @@ if __name__ == '__main__':
     top_models_confs2, top_validation_results2 = best_k_grid_search_sgd(n_training, hyperparameters2_stream, sgd_hyperparameters, k=n_models_ensemble // 2, n_random_search=n_random_search)
 
     top_models_confs += top_models_confs2
-    top_validation_results += top_validation_results2
+    top_validation_results += top_validation_results2 """
+
+    top_models_confs = [
+        {'loss_function_name': 'MSE', 'optimizer': 'adam', 'in_dimension': 10, 'out_dimension': 2, 'validation_percentage': 0.2, 'mini_batch_percentage': 0.2, 'max_unlucky_epochs': 200, 'max_epochs': 415, 'number_trials': 1, 'n_random_search': 24, 'validation_type': {'method': 'kfold', 'k': 5}, 'target_domain': None, 'lr': 0.004893756129799119, 'lr_decay': None, 'l2': 1.0676367224046923e-05, 'momentum': 0, 'adam_decay_rate_1': 0.8457887739458505, 'adam_decay_rate_2': 0.9168704209307832, 'hidden_layers': ([('tanh', 32), ('tanh', 32)], 'linear'), 'weights_init': {'method': 'fanin'}, 'print_stats': False, 'additional_metric': 'MEE', 'seed': 14817},
+        {'loss_function_name': 'MSE', 'optimizer': 'adam', 'in_dimension': 10, 'out_dimension': 2, 'validation_percentage': 0.2, 'mini_batch_percentage': 0.2, 'max_unlucky_epochs': 200, 'max_epochs': 400, 'number_trials': 1, 'n_random_search': 24, 'validation_type': {'method': 'kfold', 'k': 5}, 'target_domain': None, 'lr': 0.001, 'lr_decay': None, 'l2': 1e-05, 'momentum': 0, 'adam_decay_rate_1': 0.8, 'adam_decay_rate_2': 0.999, 'hidden_layers': ([('tanh', 32), ('tanh', 32)], 'linear'), 'weights_init': {'method': 'fanin'}, 'print_stats': False, 'additional_metric': 'MEE', 'seed': 797},
+        {'loss_function_name': 'MSE', 'optimizer': 'adam', 'in_dimension': 10, 'out_dimension': 2, 'validation_percentage': 0.2, 'mini_batch_percentage': 0.2, 'max_unlucky_epochs': 200, 'max_epochs': 568, 'number_trials': 1, 'n_random_search': 24, 'validation_type': {'method': 'kfold', 'k': 5}, 'target_domain': None, 'lr': 0.0045883207733179035, 'lr_decay': None, 'l2': 9.312556760274464e-06, 'momentum': 0, 'adam_decay_rate_1': 0.978614264733804, 'adam_decay_rate_2': 0.9987972297115776, 'hidden_layers': ([('tanh', 32), ('tanh', 32)], 'linear'), 'weights_init': {'method': 'fanin'}, 'print_stats': False, 'additional_metric': 'MEE', 'seed': 48857},
+        {'loss_function_name': 'MSE', 'optimizer': 'adam', 'in_dimension': 10, 'out_dimension': 2, 'validation_percentage': 0.2, 'mini_batch_percentage': 0.2, 'max_unlucky_epochs': 200, 'max_epochs': 534, 'number_trials': 1, 'n_random_search': 24, 'validation_type': {'method': 'kfold', 'k': 5}, 'target_domain': None, 'lr': 0.01, 'lr_decay': None, 'l2': 1e-05, 'momentum': 0, 'adam_decay_rate_1': 0.9796, 'adam_decay_rate_2': 0.999, 'hidden_layers': ([('tanh', 16), ('tanh', 16)], 'linear'), 'weights_init': {'method': 'fanin'}, 'print_stats': False, 'additional_metric': 'MEE', 'seed': 39177},
+        {'loss_function_name': 'MSE', 'optimizer': 'NAG', 'in_dimension': 10, 'out_dimension': 2, 'validation_percentage': 0.2, 'mini_batch_percentage': 1, 'max_unlucky_epochs': 100, 'max_epochs': 1091, 'number_trials': 1, 'n_random_search': 24, 'validation_type': {'method': 'kfold', 'k': 5}, 'target_domain': None, 'lr': 0.0037342490309801835, 'lr_decay': None, 'l2': 8.488678150157507e-10, 'momentum': 0.43788014663329555, 'hidden_layers': ([('tanh', 32), ('tanh', 32)], 'linear'), 'weights_init': {'method': 'fanin'}, 'print_stats': False, 'additional_metric': 'MEE', 'seed': 48040},
+        {'loss_function_name': 'MSE', 'optimizer': 'NAG', 'in_dimension': 10, 'out_dimension': 2, 'validation_percentage': 0.2, 'mini_batch_percentage': 1, 'max_unlucky_epochs': 100, 'max_epochs': 1048, 'number_trials': 1, 'n_random_search': 24, 'validation_type': {'method': 'kfold', 'k': 5}, 'target_domain': None, 'lr': 0.004318165767547856, 'lr_decay': None, 'l2': 1.0902380538927192e-05, 'momentum': 0.40248514172650846, 'hidden_layers': ([('tanh', 32), ('tanh', 32)], 'linear'), 'weights_init': {'method': 'fanin'}, 'print_stats': False, 'additional_metric': 'MEE', 'seed': 57488},
+        {'loss_function_name': 'MSE', 'optimizer': 'NAG', 'in_dimension': 10, 'out_dimension': 2, 'validation_percentage': 0.2, 'mini_batch_percentage': 1, 'max_unlucky_epochs': 100, 'max_epochs': 993, 'number_trials': 1, 'n_random_search': 24, 'validation_type': {'method': 'kfold', 'k': 5}, 'target_domain': None, 'lr': 0.004177612644616593, 'lr_decay': None, 'l2': 1.0903638751255043e-05, 'momentum': 0.38863011353699634, 'hidden_layers': ([('tanh', 16), ('tanh', 16)], 'linear'), 'weights_init': {'method': 'fanin'}, 'print_stats': False, 'additional_metric': 'MEE', 'seed': 18645},
+        {'loss_function_name': 'MSE', 'optimizer': 'NAG', 'in_dimension': 10, 'out_dimension': 2, 'validation_percentage': 0.2, 'mini_batch_percentage': 1, 'max_unlucky_epochs': 100, 'max_epochs': 1144, 'number_trials': 1, 'n_random_search': 24, 'validation_type': {'method': 'kfold', 'k': 5}, 'target_domain': None, 'lr': 0.004368337207439973, 'lr_decay': None, 'l2': 9.230337117709885e-06, 'momentum': 0.204574522787096, 'hidden_layers': ([('tanh', 32), ('tanh', 32)], 'linear'), 'weights_init': {'method': 'fanin'}, 'print_stats': False, 'additional_metric': 'MEE', 'seed': 6919}
+    ]
+    top_validation_results = [1,2,3,4,5,6,7,8]
 
     # Train the best k models
     ensemble_train_outputs = np.zeros((n_train_input.shape[0], adam_hyperparameters['out_dimension']))
@@ -159,11 +171,11 @@ if __name__ == '__main__':
 
     for ensemble_i, (best_hyperconf, results) in enumerate(zip(top_models_confs, top_validation_results)):
 
-        retraining_epochs = results["epochs"]
+        #retraining_epochs = results["epochs"]
 
         final_hyperparameters = {**best_hyperconf,
-                             "max_epochs": retraining_epochs,
-                             'seed': generate_seed(),
+         #                    "max_epochs": retraining_epochs,
+                             'seed': best_hyperconf['seed'],#generate_seed(),
                              'print_stats': False}
 
         final_confs.append(final_hyperparameters)
@@ -179,9 +191,9 @@ if __name__ == '__main__':
 
         train_mee = mean_euclidean_error(train_output, train_target)
         test_mee  = mean_euclidean_error(test_output, test_target)
-        
+
         models_mee.append((train_mee, test_mee))
-        gridsearch_mee.append((results['metric_val_error'],results['metric_val_error_var'],results['metric_train_error'],results['metric_train_error_var']))
+        #gridsearch_mee.append((results['metric_val_error'],results['metric_val_error_var'],results['metric_train_error'],results['metric_train_error_var']))
 
         ensemble_train_outputs += train_output
         ensemble_test_outputs  += test_output
@@ -240,14 +252,14 @@ if __name__ == '__main__':
     plot_gradient_norms(final_results['gradient_norms'], title=f'Gradient norm during final training', file_name=f'MLP/cup/plots/final_gradient_norms.png')
 
     for i_ensemble, (grid_search_results, retraining_result) in enumerate(zip(top_validation_results, ensemble_results)):
-        # Plot the k curves of the validation
+        """ # Plot the k curves of the validation
         if adam_hyperparameters['validation_type']['method'] == 'kfold':
-            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], metric=True, name=f'Ensemble {i_ensemble} {"SGD" if grid_search_results["optimizer_name"] == "NAG" else "Adam"}: Grid Search Mean Euclidean Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
+            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], metric=True, name=f'Ensemble {i_ensemble} ({"SGD" if grid_search_results["optimizer_name"] == "NAG" else "Adam"}): Grid Search Mean Euclidean Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
         else:
-            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], metric=True, name=f'Ensemble {i_ensemble} {"SGD" if grid_search_results["optimizer_name"] == "NAG" else "Adam"}: Grid Search Mean Euclidean Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
-
+            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], metric=True, name=f'Ensemble {i_ensemble} ({"SGD" if grid_search_results["optimizer_name"] == "NAG" else "Adam"}): Grid Search Mean Euclidean Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
+        """
         # Plot the final retraining
-        plot_final_training_with_test_error(retraining_result['metric_train_errors'], retraining_result['metric_watch_errors'], name=f'Ensemble {i_ensemble} {"SGD" if grid_search_results["optimizer_name"] == "NAG" else "Adam"}: Final Training Mean Euclidean Error', file_name=f'MLP/cup/plots/ensemble{i_ensemble}_retraining_errors.svg')
+        plot_final_training_with_test_error(retraining_result['metric_train_errors'], retraining_result['metric_watch_errors'], name=f'Ensemble {i_ensemble + 1} ({"SGD" if i_ensemble > 3 else "Adam"}): Final Retraining Mean Euclidean Error', file_name=f'MLP/cup/plots/ensemble{i_ensemble}_retraining_errors.svg')
 
     plot_compare_outputs(ensemble_train_outputs, train_target, name=f'Final training output comparison', file_name='MLP/cup/plots/scatter_train.svg')
     plot_compare_outputs(ensemble_test_outputs, test_target, name=f'Final test output comparison', file_name='MLP/cup/plots/scatter_test.svg')
