@@ -1,15 +1,9 @@
-from MLP.Network import Sequential, predict
-from MLP.GradientDescent import gradient_descent
 from MLP.Plotting import *
-from MLP.LossFunctions import mean_euclidean_error
-from MLP.GridSearch import generate_hyperparameters, grid_search
+from MLP.GridSearch import grid_search
 from MLP.RandomSearch import generate_hyperparameters_random, gen_range
 from MLP.Utils import *
-from MLP.cup.load_cup import load_blind_cup, load_cup
 from MLP.cup.cup_hyperparameters import *
 from MLP.cup.cup_hyperparameters import *
-import numpy as np
-from math import ceil
 
 # double_grid_search.py
 
@@ -17,7 +11,15 @@ from math import ceil
 # Each function combines the grid and the random search used for the two learning methods.
 
 def best_k_grid_search_adam(n_training, hyperparameters_stream, hyperparameters_space, k=1, n_random_search=0):
-
+    """
+    Grid search + random search procedure definition for Adam.
+    :param n_training: (normalized) dataset to train the models on
+    :param hyperparameters_stream: list of hyperparameter configurations given
+    :param hyperparameters_space: global hyperparameters configuration containing general information (e.g.: CV info) 
+    :param k: number of models to extract from the grid search
+    :param n_random_search: number of parameter regenerations to perform on the random search
+    :return: final_models_confs, final_validation_results
+    """
     # Start the first grid search
 
     _, best_results, validation_results = grid_search(hyperparameters_stream, n_training)
@@ -63,7 +65,15 @@ def best_k_grid_search_adam(n_training, hyperparameters_stream, hyperparameters_
     return final_models_confs, final_validation_results
 
 def best_k_grid_search_sgd(n_training, hyperparameters_stream, hyperparameters_space, k=1, n_random_search=0):
-
+    """
+    Grid search + random search procedure definition for SGD.
+    :param n_training: (normalized) dataset to train the models on
+    :param hyperparameters_stream: list of hyperparameter configurations given
+    :param hyperparameters_space: global hyperparameters configuration containing general information (e.g.: CV info) 
+    :param k: number of models to extract from the grid search
+    :param n_random_search: number of parameter regenerations to perform on the random search
+    :return: final_models_confs, final_validation_results
+    """
     # Start the first grid search
 
     _, best_results, validation_results = grid_search(hyperparameters_stream, n_training)

@@ -3,20 +3,19 @@ monk_config = {
     'optimizer'              : "NAG",
     'in_dimension'           : 17,
     'out_dimension'          : 1,
-    'target_domain'          : (0, 1), # (cross entropy)
-    'validation_percentage': 0.2,
+    'target_domain'          : (0, 1),
     'validation_type'        : {'method': 'kfold', 'k': 5},
-    #'validation_type'        : {'method': 'holdout'},
     'max_unlucky_epochs'     : 100,
     'max_epochs'             : 300,
     'number_trials'          : 3,
     'print_stats'            : False,
-    'weights_init'           : [{'method': 'fanin'}],
+    'weights_init'           : [{'method': 'normalized'}],
+    'additional_metric'      : None
 }
 
 monk1_hyperparameters = {**monk_config,
     'mini_batch_percentage'  : 1.0,
-    'lr'                     : [0.1, 0.2, 0.4,0.6, 0.8, 1.0],
+    'lr'                     : [0.1, 0.2, 0.4, 0.6, 0.8, 1.0],
     'lr_decay'               : [None],
     'l2'                     : [0.0],
     'momentum'               : [0.0, 0.2, 0.4,0.6, 0.8, 0.9],

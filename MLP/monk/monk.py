@@ -7,7 +7,6 @@ from MLP.RandomSearch import *
 from MLP.Utils import *
 from MLP.monk.load_monk import load_monk
 from MLP.monk.monk_hyperparameters import *
-from multiprocessing import cpu_count
 import numpy as np
 import time
 import random
@@ -18,9 +17,9 @@ global_seed = int(2**16 * np.random.rand())
 random.seed(global_seed)
 np.random.seed(global_seed)
 
-monks = [#(1, '1',    monk1_hyperparameters),
+monks = [(1, '1',    monk1_hyperparameters),
          #(2, '2',    monk2_hyperparameters),
-         (3, '3',    monk3_hyperparameters),
+         #(3, '3',    monk3_hyperparameters),
          #(3, '3reg', monk3_hyperparameters_reg),
          ]
 
@@ -55,19 +54,6 @@ if __name__ == '__main__':
 
         print("Hyperconfiguration chosen by the first grid search")
         print(best_hyperconfiguration1)
-
-        """ generations = 100
-        hyperparameters2 = {**best_hyperconfiguration1,
-            'lr':       gen_range(best_hyperconfiguration1['lr'],       monk_hyperparameters['lr'],       method='uniform'),
-            'momentum': gen_range(best_hyperconfiguration1['momentum'], monk_hyperparameters['momentum'], method='uniform')
-        }
-
-        hyperparameters2_stream = generate_hyperparameters_random(hyperparameters2, generations)
-
-        print(f'Second grid search over: {generations} configurations.')
-        best_hyperconfiguration2, best_results2, _ = grid_search(hyperparameters2_stream, training)
-
-        after_grid_search_time                 = time.perf_counter()"""
 
         best_results2 = best_results1
         best_hyperconfiguration2 = best_hyperconfiguration1
@@ -143,12 +129,10 @@ if __name__ == '__main__':
 
         # Plot the weights and gradient norm during the final training
         plot_weights_norms(final_results['weights_norms'],   title='Weights norm during final training',  file_name=f'MLP/monk/plots/monk{name}/final_weights_norms.svg')
-        #plot_gradient_norms(final_results['gradient_norms'], title='Gradient norm during final training', file_name=f'MLP/monk/plots/monk{name}/final_gradient_norms.svg')
+        plot_gradient_norms(final_results['gradient_norms'], title='Gradient norm during final training', file_name=f'MLP/monk/plots/monk{name}/final_gradient_norms.svg')
 
         # Plot the learning curves during the training of the best hyperparameter conf.
         if monk_hyperparameters['validation_type']['method'] == 'kfold':
-            print("Length: ", len(best_results2['best_trial_plots']))
-            assert len(best_results2['best_trial_plots']) == monk_hyperparameters['validation_type']['k']
             plot_model_selection_learning_curves(best_results2['best_trial_plots'], name=final_hyperparameters['loss_function_name'], highlight_best=True, file_name=f'MLP/monk/plots/monk{name}/model_selection_errors.svg')
             plot_model_selection_accuracies(best_results2['best_trial_plots'], highlight_best=True,                                                       file_name=f'MLP/monk/plots/monk{name}/model_selection_accuracies.svg')
         else:

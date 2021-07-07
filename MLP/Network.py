@@ -4,10 +4,19 @@ from MLP.ActivationFunctions import activation_function_from_name
 import random
 
 def Sequential(conf):
+    """
+    Main constructor for a sequentially connected whole network.
+    The network will be composed of Layers, each with its bias and weight.
+
+    :param conf: configuration dictionary with the network structure and settings
+    :return: a dictionary object representing the network and its layers
+    """
+
     in_dimension  = conf["in_dimension"]
     out_dimension = conf["out_dimension"]
 
     model = {}
+
     model["seed"]          = conf["seed"]
     model["layers"]        = []
     model["in_dimension"]  = in_dimension
@@ -29,6 +38,13 @@ def Sequential(conf):
     return model
 
 def predict(model, x):
+    """
+    Main constructor for a sequentially connected whole network.
+    The network will be composed of Layers, each with its bias and weight.
+
+    :param conf: configuration dictionary with the network structure and settings
+    :return: a dictionary object representing the network and its layers
+    """
     for layer in model["layers"]:
         x = forward(layer, x)
     return x

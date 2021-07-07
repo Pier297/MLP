@@ -6,7 +6,6 @@ def end_plotting():
     plt.show()
 
 def plot_compare_outputs(train_output, watch_output, name: str, file_name: str = ''):
-    #plt.figure()
     if watch_output is not None:
         fig, ax = plt.subplots()
 

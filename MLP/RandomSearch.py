@@ -29,6 +29,5 @@ def generate_hyperparameters_random(master, params, generations=100):
                     instance[k] = sample(v)
                 else:
                     instance[k] = v
-            print("Lr generated:", instance['lr'], instance['momentum'])
             yield instance
     return [master] + list(map(change_seed, stream()))

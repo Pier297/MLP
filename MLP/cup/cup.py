@@ -9,10 +9,8 @@ from MLP.cup.load_cup import load_blind_cup, load_cup
 from MLP.cup.cup_hyperparameters import *
 from MLP.cup.double_grid_search import *
 import numpy as np
-import time
 import random
 import os
-from datetime import datetime
 from math import ceil
 
 # cup.py
@@ -80,20 +78,18 @@ if __name__ == '__main__':
 
     # Run the grid search + random search for the first ensemble trained with Adam
 
-    hyperparameters1_stream = generate_hyperparameters(adam_hyperparameters, statistics=training_statistics)
+    hyperparameters1_stream = generate_hyperparameters(adam_hyperparameters)
     n_random_search = adam_hyperparameters['n_random_search']
     top_models_confs, top_validation_results = best_k_grid_search_adam(n_training, hyperparameters1_stream, adam_hyperparameters, k=n_models_ensemble//2, n_random_search=n_random_search)
 
     # Run the grid search + random search for the first ensemble trained with SGD
 
-    hyperparameters2_stream = generate_hyperparameters(sgd_hyperparameters, statistics=training_statistics)
+    hyperparameters2_stream = generate_hyperparameters(sgd_hyperparameters)
     n_random_search = sgd_hyperparameters['n_random_search']
-    top_models_confs2, top_validation_results2 = best_k_grid_search_sgd(n_training, hyperparameters2_stream, sgd_hyperparameters, k=n_models_ensemble // 2, n_random_search=n_random_search)
+    top_models_confs2, top_validation_results2 = best_k_grid_search_sgd(n_training, hyperparameters2_stream, sgd_hyperparameters, k=n_models_ensemble//2, n_random_search=n_random_search)
 
     top_models_confs       += top_models_confs2
     top_validation_results += top_validation_results2
-    top_models_confs       = []
-    top_validation_results = []
 
     # Retrain the best k models by collecting the outputs
 
@@ -118,7 +114,7 @@ if __name__ == '__main__':
 
         final_hyperparameters = {**best_hyperconf,
                                  "max_epochs": results["epochs"],
-                                 'seed': best_hyperconf['seed'],
+                                 'seed': generate_seed(),
                                  'print_stats': False}
 
         final_confs.append(final_hyperparameters)
@@ -188,13 +184,6 @@ if __name__ == '__main__':
 
     #################################### Plotting ##############################################
 
-    loss_func_name = final_hyperparameters['loss_function_name']
-
-    # Plot the weights and gradient norm during the final training (additional and not used in the report)
-
-    plot_weights_norms(final_results['weights_norms'],   title=f'Weights norm during final training',  file_name=f'MLP/cup/plots/final_weights_norms.png')
-    plot_gradient_norms(final_results['gradient_norms'], title=f'Gradient norm during final training', file_name=f'MLP/cup/plots/final_gradient_norms.png')
-
     # Produce the plots for each ensembled model
 
     for i_ensemble, (grid_search_results, retraining_result) in enumerate(zip(top_validation_results, ensemble_results)):
@@ -202,9 +191,9 @@ if __name__ == '__main__':
         # Plot the k curves of the validation
 
         if adam_hyperparameters['validation_type']['method'] == 'kfold' and sgd_hyperparameters['validation_type']['method'] == 'kfold':
-            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], metric=True, name=f'Ensemble {i_ensemble} ({"SGD" if grid_search_results["optimizer_name"] == "NAG" else "Adam"}): Grid Search Mean Euclidean Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
+            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], metric=True, name=f'Ensemble {i_ensemble + 1} ({"SGD" if grid_search_results["optimizer_name"] == "NAG" else "Adam"}): Grid Search Mean Euclidean Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
         else:
-            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], metric=True, name=f'Ensemble {i_ensemble} ({"SGD" if grid_search_results["optimizer_name"] == "NAG" else "Adam"}): Grid Search Mean Euclidean Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
+            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], metric=True, name=f'Ensemble {i_ensemble + 1} ({"SGD" if grid_search_results["optimizer_name"] == "NAG" else "Adam"}): Grid Search Mean Euclidean Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
 
         # Plot the final retraining results
 

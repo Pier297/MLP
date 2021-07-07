@@ -1,33 +1,46 @@
 import numpy as np
 
+# Helper procedures to load the files globally
+
 def load_cup():
-    training = []
-    test = []
-    training = _load_cup('MLP/cup/data/ML-CUP-training.csv')
-    test = _load_cup('MLP/cup/data/ML-CUP-test.csv')
+    """
+    Load the cup datasets from the globally available files.
+    :return: training, test
+    """
+    training = load_cup_from_file('MLP/cup/data/ML-CUP-training.csv')
+    test = load_cup_from_file('MLP/cup/data/ML-CUP-test.csv')
 
     return training, test
-    
 
-def _load_cup(file_name):
+def load_blind_cup():
+    """
+    Load the bling cup inputs from the globally available files.
+    :return: inputs
+    """
+    return load_blind_cup_from_file('MLP/cup/data/ML-CUP20-TS.csv')
+
+# General procedures for file loading given the file names
+
+def load_cup_from_file(file_name):
+    """
+    Load the cup datasets from the given filename.
+    :return: training, test
+    """
     data = []
     with open(file_name) as f:
         for line in f.readlines():
+            # Parse the file as standard CSV
             line = line.strip().split(',')
-            # ['-1.227729', '0.740105', '0.453528', '-0.761051', '-0.537705', '1.471803', '-1.143195', '2.034647', '1.603978', '-1.399807', '58.616635', '-36.878797']
             line = [float(x) for x in line]
-            # [-1.227729, 0.740105, 0.453528, -0.761051, -0.537705, 1.471803, -1.143195, 2.034647, 1.603978, -1.399807, 58.616635, -36.878797]
+            # Transform to nparray
             data.append(np.array(line))
     return np.array(data)
 
-
-def load_blind_cup():
-    data = _load_blind_cup('MLP/cup/data/ML-CUP20-TS.csv')
-
-    return data
-    
-
-def _load_blind_cup(file_name):
+def load_blind_cup_from_file(file_name):
+    """
+    Load the blind cup inputs from the given filename.
+    :return: inputs
+    """
     data = []
     with open(file_name) as f:
         for line in f.readlines():

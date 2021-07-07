@@ -1,0 +1,21 @@
+Monk 1
+Global seed = 47197
+
+Final model seed                     = 28199
+Hyperparameters searched             = 108
+Best grid search train error         = 0.005193699695866597 +- 1.9346871705572688e-08
+Best grid search train accuracy      = 1.0 +- 0.0
+Best grid search validation error    = 0.014947470770069943 +- 5.893736436508504e-06
+Best grid search validation accuracy = 1.0 +- 0.0
+Final selected epoch                 = 300
+Final selected train accuracy        = 1.0
+Final selected train error           = 0.005196398595130524, std=3.66145058592734e-05
+Final selected test error            = 0.008100995553744179, std=8.079479158734644e-05
+Final test accuracy                  = 1.0
+
+Train MSE = 6.244930603473905e-05
+Test MSE = 0.00014269279734693713
+
+Final hyperparameters
+
+{'loss_function_name': 'Cross Entropy', 'optimizer': 'NAG', 'in_dimension': 17, 'out_dimension': 1, 'target_domain': (0, 1), 'validation_percentage': 0.2, 'validation_type': {'method': 'kfold', 'k': 5}, 'max_unlucky_epochs': 100, 'max_epochs': 299, 'number_trials': 3, 'print_stats': False, 'weights_init': {'method': 'normalized'}, 'additional_metric': None, 'mini_batch_percentage': 1.0, 'lr': 1.0, 'lr_decay': None, 'l2': 0.0, 'momentum': 0.2, 'hidden_layers': ([('tanh', 5)], 'sigmoid'), 'seed': 28199}

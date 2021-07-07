@@ -4,7 +4,7 @@ from MLP.LossFunctions import loss_function_from_name, accuracy, mean_euclidean_
 from MLP.Gradient import compute_gradient
 from MLP.Network import predict
 from MLP.Adam import adam_step
-from MLP.NAG import nag_step
+from MLP.Nesterov import nag_step
 from math import inf
 from MLP.Utils import denormalize
 
@@ -121,8 +121,8 @@ def gradient_descent(model, training, validation=None, config={}, watching=None,
 
         if config['additional_metric'] is not None:
             metric_train_error    = mean_euclidean_error(train_outputs, train_target)
-            metric_val_error      = mean_euclidean_error(val_outputs,   val_target)   if validation is not None else inf
-            metric_watch_error    = mean_euclidean_error(watch_outputs, watch_target) if watching   is not None else inf
+            metric_val_error      = mean_euclidean_error(val_outputs,   val_target)   if validation is not None else -1
+            metric_watch_error    = mean_euclidean_error(watch_outputs, watch_target) if watching   is not None else -1
 
             metric_train_errors.append(metric_train_error)
             metric_val_errors.append(metric_val_error)

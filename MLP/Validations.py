@@ -12,8 +12,8 @@ def holdout_hyperconfiguration(conf, training, validation, trial_subseed):
             'best_train_accuracy' : result['train_accuracies'][result['best_epoch']],
             'best_val_error'      : result['val_errors']      [result['best_epoch']],
             'best_val_accuracy'   : result['val_accuracies']  [result['best_epoch']],
-            'best_metric_train_error' : result['metric_train_errors'][result['best_epoch']],
-            'best_metric_val_error'   : result['metric_val_errors']  [result['best_epoch']],
+            'best_metric_train_error' : result['metric_train_errors'][result['best_epoch']] if conf['additional_metric'] is not None else inf,
+            'best_metric_val_error'   : result['metric_val_errors']  [result['best_epoch']] if conf['additional_metric'] is not None else inf,
             'plots'               : [result]
             }
 
@@ -34,7 +34,7 @@ def kfold_hyperconfiguration(conf, folded_dataset, trial_subseed):
             'best_train_accuracy' : np.average(np.array([f['train_accuracies'][f['best_epoch']] for f in folds])),
             'best_val_error'      : np.average(np.array([f['val_errors']      [f['best_epoch']] for f in folds])),
             'best_val_accuracy'   : np.average(np.array([f['val_accuracies']  [f['best_epoch']] for f in folds])),
-            'best_metric_train_error' : np.average(np.array([f['metric_train_errors'][f['best_epoch']] for f in folds])),
-            'best_metric_val_error'   : np.average(np.array([f['metric_val_errors']  [f['best_epoch']] for f in folds])),
+            'best_metric_train_error' : np.average(np.array([f['metric_train_errors'][f['best_epoch']] if conf['additional_metric'] is not None else -1 for f in folds])),
+            'best_metric_val_error'   : np.average(np.array([f['metric_val_errors']  [f['best_epoch']] if conf['additional_metric'] is not None else -1 for f in folds])),
             'plots'               : folds
            }

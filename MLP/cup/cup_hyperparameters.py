@@ -1,6 +1,56 @@
-# Hyperparameters used for the final grid search
+################################ Testing hyperparameters #################################################
 
 adam_hyperparameters = {
+    'loss_function_name'     : "MSE",
+    'optimizer'              : "adam",
+    'in_dimension'           : 10,
+    'out_dimension'          : 2,
+    'mini_batch_percentage'  : [0.2],
+    'max_unlucky_epochs'     : 200,
+    'max_epochs'             : 300,
+    'number_trials'          : 1,
+    'n_random_search'        : 12,
+    'validation_percentage' : 0.2,
+    'validation_type'        : {'method': 'holdout'},
+    'target_domain'          : None,
+    'lr'                     : [5e-4, 1e-3],
+    'lr_decay'               : None,
+    'l2'                     : [0.0, 5e-6],
+    'adam_decay_rate_1'      : [0.8],
+    'adam_decay_rate_2'      : [0.9],
+    'hidden_layers'          : [([('tanh',8), ('tanh', 8)],'linear'),],
+    'weights_init'           : [{'method': 'normalized'}],
+    'print_stats'            : False,
+    'additional_metric'      : 'MEE'
+}
+
+sgd_hyperparameters = {
+    'loss_function_name'     : "MSE",
+    'optimizer'              : "NAG",
+    'in_dimension'           : 10,
+    'out_dimension'          : 2,
+    'mini_batch_percentage'  : 1,
+    'max_unlucky_epochs'     : 100,
+    'max_epochs'             : 300,
+    'number_trials'          : 1,
+    'n_random_search'        : 12,
+    'validation_percentage' : 0.2,
+    'validation_type'        : {'method': 'holdout'},
+    'target_domain'          : None,
+    'lr'                     : [0.1, 0.2, 0.3, 0.4],
+    'lr_decay'               : None,
+    'l2'                     : [0],
+    'momentum'               : [0.3],
+    'hidden_layers'          : [([('tanh',8), ('tanh', 8)],'linear'),],
+    'weights_init'           : [{'method': 'normalized'}],
+    'print_stats'            : False,
+    'additional_metric'      : 'MEE'
+}
+
+
+################################ Final hyperparameters #################################################
+
+adam_hyperparameters1 = {
     'loss_function_name'     : "MSE",
     'optimizer'              : "adam",
     'in_dimension'           : 10,
@@ -23,12 +73,12 @@ adam_hyperparameters = {
                                 ([('relu',16), ('relu', 16)],'linear'),
                                 ([('tanh',16), ('tanh', 16),('tanh',16)],'linear'),
                                 ([('relu',16), ('relu', 16),('relu',16)],'linear'),],
-    'weights_init'           : [{'method': 'fanin'}, {'method': 'linear', 'range': 0.7}],
+    'weights_init'           : [{'method': 'normalized'}, {'method': 'linear', 'range': 0.7}],
     'print_stats'            : False,
     'additional_metric'      : 'MEE'
 }
 
-sgd_hyperparameters = {
+sgd_hyperparameters1 = {
     'loss_function_name'     : "MSE",
     'optimizer'              : "NAG",
     'in_dimension'           : 10,
@@ -50,7 +100,7 @@ sgd_hyperparameters = {
                                 ([('relu',16), ('relu', 16)],'linear'),
                                 ([('tanh',16), ('tanh', 16),('tanh',16)],'linear'),
                                 ([('relu',16), ('relu', 16),('relu',16)],'linear'),],
-    'weights_init'           : [{'method': 'fanin'}, {'method': 'linear', 'range': 0.7}],
+    'weights_init'           : [{'method': 'normalized'}, {'method': 'linear', 'range': 0.7}],
     'print_stats'            : False,
     'additional_metric'      : 'MEE'
 }
