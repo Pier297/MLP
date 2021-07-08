@@ -9,7 +9,11 @@ from math import ceil, inf
 import time
 import numpy as np
 
-def generate_hyperparameters(params):    
+# GridSearch.py
+
+# Main definitions for the GridSearch and RandomSearch hyperparameters list exploration procedures.
+
+def generate_hyperparameters(params):
     """
     Generate a list of hyperparameters given all the possibilities in params.
     If the argument is a list, it is generated with all the possibilities.
@@ -35,7 +39,7 @@ def generate_hyperparameters(params):
 
     return list(map(change_seed, results))
 
-def trialize(number_trials, validation_method):  
+def trialize(number_trials, validation_method):
     """
     Repeat the given validation_method the given number of times, and produce
     and averaged list of all the values returned by the validation method.
@@ -109,10 +113,10 @@ def holdout_grid_search(hyperparameters, training):
     :return: a list with the validation results for each hyperconfiguration
     """
 
-    # Helper function to perform the main holdout split, given the 
+    # Helper function to perform the main holdout split, given the
     # validation proportions of the dataset to be split.
     # Note: this is only performed once and for all hyperconfigurations.
-    
+
     def split_train_set(dataset, val_prop):
         val_size = int(val_prop * dataset.shape[0])
         train_set = dataset[val_size:][:]
@@ -120,11 +124,11 @@ def holdout_grid_search(hyperparameters, training):
         return (train_set, val_set)
 
     # Split the dataset
-    
+
     (train_set, val_set) = split_train_set(np.random.permutation(training), hyperparameters[0]['validation_percentage'])
-    
+
     # Run the grid search in parallel:
-    
+
     with Pool(processes=cpu_count()) as pool:
         return pool.map(call_holdout, enumerate(zip(hyperparameters, repeat((train_set, val_set)))))
 
@@ -134,11 +138,11 @@ def kfold_grid_search(hyperparameters, training):
     :param hyperparameters: a list of all the configurations to be tested in the grid search.
     :return: a list with the validation results for each hyperconfiguration
     """
-    
-    # Helper function to perform the main kfold splits, given the 
+
+    # Helper function to perform the main kfold splits, given the
     # k chunks to split the dataset in
     # Note: this is only performed once and for all hyperconfigurations.
-    
+
     def split_chunks(vals, k):
         size = ceil(len(vals)/k)
         for i in range(0, len(vals), size):
@@ -149,7 +153,7 @@ def kfold_grid_search(hyperparameters, training):
     folded_dataset = list(split_chunks(np.random.permutation(training), hyperparameters[0]['validation_type']['k']))
 
     # Run the grid search in parallel:
-    
+
     with Pool(processes=cpu_count()) as pool:
         return pool.map(call_kfold, enumerate(zip(hyperparameters, repeat((folded_dataset)))))
 

@@ -26,7 +26,7 @@ adam_hyperparameters = {
 
 sgd_hyperparameters = {
     'loss_function_name'     : "MSE",
-    'optimizer'              : "NAG",
+    'optimizer'              : "SGDN",
     'in_dimension'           : 10,
     'out_dimension'          : 2,
     'mini_batch_percentage'  : 1,
@@ -80,7 +80,7 @@ adam_hyperparameters1 = {
 
 sgd_hyperparameters1 = {
     'loss_function_name'     : "MSE",
-    'optimizer'              : "NAG",
+    'optimizer'              : "SGDN",
     'in_dimension'           : 10,
     'out_dimension'          : 2,
     'mini_batch_percentage'  : 1,

@@ -191,9 +191,10 @@ if __name__ == '__main__':
         # Plot the k curves of the validation
 
         if adam_hyperparameters['validation_type']['method'] == 'kfold' and sgd_hyperparameters['validation_type']['method'] == 'kfold':
-            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], metric=True, name=f'Ensemble {i_ensemble + 1} ({"SGD" if grid_search_results["optimizer_name"] == "NAG" else "Adam"}): Grid Search Mean Euclidean Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
+            # In the case of k-fold, plot all the folds on the same graph
+            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], metric=True, name=f'Ensemble {i_ensemble + 1} ({"SGD" if grid_search_results["optimizer_name"] == "SGDN" else "Adam"}): Grid Search Mean Euclidean Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
         else:
-            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], metric=True, name=f'Ensemble {i_ensemble + 1} ({"SGD" if grid_search_results["optimizer_name"] == "NAG" else "Adam"}): Grid Search Mean Euclidean Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
+            plot_model_selection_learning_curves(grid_search_results['best_trial_plots'], metric=True, name=f'Ensemble {i_ensemble + 1} ({"SGD" if grid_search_results["optimizer_name"] == "SGDN" else "Adam"}): Grid Search Mean Euclidean Error', highlight_best=True, file_name=f'MLP/cup/plots/ensemble{i_ensemble}_model_selection_errors.svg')
 
         # Plot the final retraining results
 

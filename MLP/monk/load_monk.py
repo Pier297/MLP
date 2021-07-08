@@ -1,23 +1,29 @@
 import numpy as np
 
-# 'number' can be 1, 2 or 3
-# It returns the dataset splitted into training and test set.
-# Already handling the one-hot representation
+# load_monk.py
+
+# Helper procedures to load the MONK's datasets.
 
 def one_hot(x, k):
+    """Returns the one-of-k encoding of the given variable, with k number of classes, in the range (-1,+1)."""
     r = np.zeros(k, dtype=int) - 1
     r[x - 1] = 1
     return r
 
 def load_monk(number: int, target_domain=(-1, 1)):
+    """Load the MONK dataset from the global filenames."""
     training = _load_monk(f'MLP/monk/data/monks-{str(number)}.train', target_domain)
     test = _load_monk(f'MLP/monk/data/monks-{str(number)}.test', target_domain)
     return (training, test)
 
 def _load_monk(file_name: str, target_domain=(-1, 1)):
+    """Load the MONK dataset from the given filename."""
     data = []
     with open(file_name) as f:
         for line in f.readlines():
+
+            # Line hard-coded examples for the MONK dataset
+
             line = line.split(' ')
             # ['', '1', '3', '3', '2', '3', '4', '2', 'data_432\n']
             line = line[1:-1]

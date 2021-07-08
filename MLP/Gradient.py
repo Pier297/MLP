@@ -1,13 +1,20 @@
 from MLP.Layers import net
 import numpy as np
 
+# Gradient.py
+
+# Single file encapsulating the gradient calculation procedure.
+# This is used both in standard gradient descente and Nesterov momentum in particular.
+
 def compute_gradient(model, mini_batch, error_function):
     """
-    Compute the gradient of the current network given mini_batch and the loss function.
+    Compute the gradient of the current network given mini_batch and the loss function,
+    using backpropagation and heavily exploiting matricial operations to speedup the
+    calculations of the gradient, not just for a pattern but for the entire dataset.
     :param model: network model
     :param mini_batch: (nparray) dataset to evaluate
     :param error_function: output error function for which the gradient is calculated
-    :return nabla_W, nabla_b
+    :return nabla_W, nabla_b: the gradient matrix for each weight and bias of each layer.
     """
 
     # Separate the input and output data from the minibatch
@@ -24,11 +31,11 @@ def compute_gradient(model, mini_batch, error_function):
     for layer in model["layers"]:
 
         # Initialize the deltas for each layer
-        
+
         deltas.append(np.zeros(layer["W"].shape))
 
         # Apply feed-forward on the layers, saving the outputs
-        
+
         net_x = net(layer, x)
         x = layer["activation_func"](net_x)
 
@@ -46,7 +53,7 @@ def compute_gradient(model, mini_batch, error_function):
     for i in reversed(range(len(model["layers"])-1)):
         deltas[i] = np.dot(deltas[i+1], model["layers"][i+1]['W']) * activations_der[i]
 
-    # Finally recollect the deltas by multiplying them by the activations and divide by the minibatch size 
+    # Finally recollect the deltas by multiplying them by the activations and divide by the minibatch size
 
     batch_size = x.shape[0]
     nabla_W = [d.T.dot(activations[i])/batch_size for i, d in enumerate(deltas)]

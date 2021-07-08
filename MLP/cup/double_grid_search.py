@@ -15,7 +15,7 @@ def best_k_grid_search_adam(n_training, hyperparameters_stream, hyperparameters_
     Grid search + random search procedure definition for Adam.
     :param n_training: (normalized) dataset to train the models on
     :param hyperparameters_stream: list of hyperparameter configurations given
-    :param hyperparameters_space: global hyperparameters configuration containing general information (e.g.: CV info) 
+    :param hyperparameters_space: global hyperparameters configuration containing general information (e.g.: CV info)
     :param k: number of models to extract from the grid search
     :param n_random_search: number of parameter regenerations to perform on the random search
     :return: final_models_confs, final_validation_results
@@ -69,7 +69,7 @@ def best_k_grid_search_sgd(n_training, hyperparameters_stream, hyperparameters_s
     Grid search + random search procedure definition for SGD.
     :param n_training: (normalized) dataset to train the models on
     :param hyperparameters_stream: list of hyperparameter configurations given
-    :param hyperparameters_space: global hyperparameters configuration containing general information (e.g.: CV info) 
+    :param hyperparameters_space: global hyperparameters configuration containing general information (e.g.: CV info)
     :param k: number of models to extract from the grid search
     :param n_random_search: number of parameter regenerations to perform on the random search
     :return: final_models_confs, final_validation_results

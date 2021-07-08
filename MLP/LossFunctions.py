@@ -1,6 +1,7 @@
 import numpy as np
 
 # LossFunctions.py
+
 # Contains the main loss functions used in the project, both
 # for model evaluation and for learning.
 

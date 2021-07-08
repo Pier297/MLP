@@ -2,6 +2,10 @@ import numpy as np
 from MLP.ActivationFunctions import Tanh, Sigmoid
 from math import sqrt
 
+# Layers.py
+
+# Definition for a fully connected layer of the Network.
+
 def Dense(in_dimension: int, out_dimension: int, use_bias=True, activation_func=Tanh(), weights_init = {'method': 'linear', 'range': 0.7}):
     """
     Main constructor for a dense layer of the network.

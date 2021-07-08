@@ -18,4 +18,4 @@ Test MSE = 0.00014269279734693713
 
 Final hyperparameters
 
-{'loss_function_name': 'Cross Entropy', 'optimizer': 'NAG', 'in_dimension': 17, 'out_dimension': 1, 'target_domain': (0, 1), 'validation_percentage': 0.2, 'validation_type': {'method': 'kfold', 'k': 5}, 'max_unlucky_epochs': 100, 'max_epochs': 299, 'number_trials': 3, 'print_stats': False, 'weights_init': {'method': 'normalized'}, 'additional_metric': None, 'mini_batch_percentage': 1.0, 'lr': 1.0, 'lr_decay': None, 'l2': 0.0, 'momentum': 0.2, 'hidden_layers': ([('tanh', 5)], 'sigmoid'), 'seed': 28199}
+{'loss_function_name': 'Cross Entropy', 'optimizer': 'SGDN', 'in_dimension': 17, 'out_dimension': 1, 'target_domain': (0, 1), 'validation_percentage': 0.2, 'validation_type': {'method': 'kfold', 'k': 5}, 'max_unlucky_epochs': 100, 'max_epochs': 299, 'number_trials': 3, 'print_stats': False, 'weights_init': {'method': 'normalized'}, 'additional_metric': None, 'mini_batch_percentage': 1.0, 'lr': 1.0, 'lr_decay': None, 'l2': 0.0, 'momentum': 0.2, 'hidden_layers': ([('tanh', 5)], 'sigmoid'), 'seed': 28199}

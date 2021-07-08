@@ -1,6 +1,8 @@
+################################ Final hyperparameters #################################################
+
 monk_config = {
     'loss_function_name'     : "Cross Entropy",
-    'optimizer'              : "NAG",
+    'optimizer'              : "SGDN",
     'in_dimension'           : 17,
     'out_dimension'          : 1,
     'target_domain'          : (0, 1),
